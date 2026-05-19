@@ -525,6 +525,79 @@
   }
   .household-tip strong { font-weight: 700; }
 
+  /* SPECIAL MEGA TABS */
+  .deck-tab.vocab-all .tab-jp { color: #0369a1; }
+  .deck-tab.vocab-all.active .tab-jp { color: #0369a1; }
+  .deck-tab.vocab-all .tab-bar-fill { background: #0369a1; }
+  .deck-tab.grammar-all .tab-jp { color: #7c3aed; }
+  .deck-tab.grammar-all.active .tab-jp { color: #7c3aed; }
+  .deck-tab.grammar-all .tab-bar-fill { background: #7c3aed; }
+  .deck-tab.everything .tab-jp { color: #b45309; }
+  .deck-tab.everything.active .tab-jp { color: #b45309; }
+  .deck-tab.everything .tab-bar-fill { background: #b45309; }
+  .deck-tab.everything .tab-en { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* MASTERY GAME */
+  .mastery-hud {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fffbeb;
+    border: 1.5px solid #fbbf24;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .mastery-hud .m-stat { text-align: center; }
+  .mastery-hud .m-val { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+  .mastery-hud .m-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .pip-row { display: flex; gap: 5px; justify-content: center; margin-top: 10px; }
+  .pip {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg3);
+    transition: background 0.2s;
+  }
+  .pip.filled { background: var(--accent3); border-color: var(--accent3); }
+  .pip.almost { background: var(--gold); border-color: var(--gold); }
+  .mastery-progress-wrap {
+    height: 6px; background: var(--bg3); border-radius: 3px; margin-bottom: 20px; overflow: hidden;
+  }
+  .mastery-progress-bar {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent3), #22d3ee);
+    transition: width 0.5s ease;
+  }
+  .mastery-graduate {
+    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    background: var(--text); color: white;
+    font-family: var(--font-jp); font-size: 20px; font-weight: 700;
+    padding: 20px 36px; border-radius: 24px; z-index: 300;
+    animation: popFade 2.2s ease forwards;
+    pointer-events: none;
+    text-align: center;
+    line-height: 1.5;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    max-width: 80vw;
+  }
+  .mastery-graduate.milestone-20 { background: #1e40af; }
+  .mastery-graduate.milestone-10 { background: #7c3aed; }
+  .mastery-graduate.milestone-5  { background: #d97706; }
+  .mastery-graduate.milestone-done { background: #15803d; font-size: 22px; }
+  @keyframes popFade {
+    0%  { opacity: 0; transform: translate(-50%,-50%) scale(0.7); }
+    15% { opacity: 1; transform: translate(-50%,-50%) scale(1.08); }
+    30% { transform: translate(-50%,-50%) scale(1); }
+    75% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    100%{ opacity: 0; transform: translate(-50%,-50%) scale(1); }
+  }
+  .mastery-complete {
+    text-align: center; padding: 40px 20px;
+  }
+  .mastery-complete .trophy { font-size: 64px; margin-bottom: 16px; }
+  .mastery-complete h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .mastery-complete p { font-size: 15px; color: var(--text2); margin-bottom: 28px; line-height: 1.7; }
+
   @media (max-width: 400px) {
     .card-jp { font-size: 42px; }
     .blitz-choices { grid-template-columns: 1fr; }
@@ -826,6 +899,30 @@ const DECKS = [
   },
 ];
 
+// ===== VIRTUAL DECKS (aggregates) =====
+// Grammar deck ids
+const GRAMMAR_IDS = ['unit6grammar'];
+// Vocab deck ids = everything else
+const VOCAB_IDS = ['ie','tabemono','dousa','gakkou','jikan','kimochi','unit6food','colors','fuku','sentences'];
+
+function buildVirtualDeck(ids, id, jp, en, tag) {
+  const cards = [];
+  ids.forEach(did => {
+    const deck = DECKS.find(d => d.id === did);
+    if (deck) deck.cards.forEach((c, ci) => {
+      cards.push({ ...c, _sourceId: did, _sourceIdx: ci });
+    });
+  });
+  return { id, jp, en, tag, virtual: true, cards };
+}
+
+const VIRTUAL_DECKS = [
+  buildVirtualDeck(VOCAB_IDS, 'all-vocab', 'ぜんぶ', 'All Vocab', 'vocab-all'),
+  buildVirtualDeck(GRAMMAR_IDS, 'all-grammar', 'ぶんぽう', 'All Grammar', 'grammar-all'),
+  buildVirtualDeck([...VOCAB_IDS, ...GRAMMAR_IDS], 'everything', 'すべて', 'EVERYTHING', 'everything'),
+];
+const ALL_DECKS = [...DECKS, ...VIRTUAL_DECKS];
+
 // ===== STATE =====
 const XP_PER_LEVEL = 100;
 let state = JSON.parse(localStorage.getItem('tangoState') || 'null') || {
@@ -833,6 +930,7 @@ let state = JSON.parse(localStorage.getItem('tangoState') || 'null') || {
   streak: 0, bestStreak: 0,
   progress: {}, // deckId -> set of known indices
   bestBlitz: {}, // deckId -> best score
+  mastery: {}, // 'deckId:cardIdx' -> correct count (0-3)
 };
 // Ensure progress is sets (JSON doesn't serialize Sets)
 Object.keys(state.progress).forEach(k => {
@@ -874,12 +972,28 @@ function saveState() {
 // ===== DECK TABS =====
 function renderTabs() {
   const container = document.getElementById('deck-tabs');
-  container.innerHTML = DECKS.map((d, i) => {
-    const prog = state.progress[d.id] ? state.progress[d.id].size : 0;
-    const total = d.cards.length;
-    const pct = Math.round(prog / total * 100);
-    const mastered = prog === total;
-    return `<button class="deck-tab${i === currentDeck ? ' active' : ''}${mastered ? ' mastered' : ''}${d.tag === 'japanese2' ? ' japanese2' : ''}" onclick="switchDeck(${i})">
+  container.innerHTML = ALL_DECKS.map((d, i) => {
+    let prog, total, pct, mastered;
+    if (d.virtual && d.id === 'everything') {
+      // everything tab: count mastered cards (hit 3x)
+      total = d.cards.length;
+      const m = state.mastery || {};
+      prog = d.cards.filter(c => (m[c._sourceId + ':' + c._sourceIdx] || 0) >= 3).length;
+      pct = Math.round(prog / total * 100);
+      mastered = prog === total;
+    } else if (d.virtual) {
+      total = d.cards.length;
+      prog = d.cards.filter(c => state.progress[c._sourceId] && state.progress[c._sourceId].has(c._sourceIdx)).length;
+      pct = Math.round(prog / total * 100);
+      mastered = prog === total;
+    } else {
+      prog = state.progress[d.id] ? state.progress[d.id].size : 0;
+      total = d.cards.length;
+      pct = Math.round(prog / total * 100);
+      mastered = prog === total;
+    }
+    const tagClass = d.tag === 'japanese2' ? ' japanese2' : d.tag === 'vocab-all' ? ' vocab-all' : d.tag === 'grammar-all' ? ' grammar-all' : d.tag === 'everything' ? ' everything' : '';
+    return `<button class="deck-tab${i === currentDeck ? ' active' : ''}${mastered ? ' mastered' : ''}${tagClass}" onclick="switchDeck(${i})">
       <span class="tab-jp">${d.jp}</span>
       <span class="tab-en">${d.en}</span>
       <div class="tab-bar"><div class="tab-bar-fill" style="width:${pct}%"></div></div>
@@ -891,8 +1005,26 @@ function renderTabs() {
 function switchDeck(i) {
   currentDeck = i;
   renderTabs();
-  if (currentMode === 'study') renderStudy();
-  else renderBlitzStart();
+  const deck = ALL_DECKS[i];
+  const mArea = document.getElementById('mastery-area');
+  if (deck && deck.id === 'everything') {
+    document.getElementById('mode-bar').classList.add('hidden');
+    document.getElementById('study-area').classList.add('hidden');
+    document.getElementById('blitz-area').classList.add('hidden');
+    renderMasteryGame();
+  } else {
+    document.getElementById('mode-bar').classList.remove('hidden');
+    if (mArea) mArea.classList.add('hidden');
+    if (currentMode === 'study') {
+      document.getElementById('study-area').classList.remove('hidden');
+      document.getElementById('blitz-area').classList.add('hidden');
+      renderStudy();
+    } else {
+      document.getElementById('study-area').classList.add('hidden');
+      document.getElementById('blitz-area').classList.remove('hidden');
+      renderBlitzStart();
+    }
+  }
 }
 
 // ===== HUD =====
@@ -939,6 +1071,8 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById('btn-study').className = 'mode-btn' + (mode === 'study' ? ' active' : '');
   document.getElementById('btn-blitz').className = 'mode-btn' + (mode === 'blitz' ? ' active' : '');
+  const mAreaSM = document.getElementById('mastery-area');
+  if (mAreaSM) mAreaSM.classList.add('hidden');
   if (mode === 'study') {
     document.getElementById('study-area').classList.remove('hidden');
     document.getElementById('blitz-area').classList.add('hidden');
@@ -952,7 +1086,7 @@ function setMode(mode) {
 
 // ===== STUDY MODE =====
 function buildStudyQueue() {
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   const known = state.progress[deck.id] || new Set();
   // Put unknown cards first, then known cards at the end for review
   const unknown = deck.cards.map((c,i) => i).filter(i => !known.has(i));
@@ -968,7 +1102,7 @@ function renderStudy() {
 }
 
 function renderStudyCard() {
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   const area = document.getElementById('study-area');
   if (studyQueue.length === 0) {
     area.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text2)">このデッキにカードがありません。</div>';
@@ -1041,7 +1175,7 @@ function advanceCard() {
 }
 
 function markKnew() {
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   if (!state.progress[deck.id]) state.progress[deck.id] = new Set();
   const cardIdx = studyQueue[studyIndex];
   const wasNew = !state.progress[deck.id].has(cardIdx);
@@ -1076,7 +1210,7 @@ function nextStudyCard() {
 
 // ===== BLITZ MODE =====
 function renderBlitzStart() {
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   const best = state.bestBlitz[deck.id] || 0;
   const ghostHtml = best > 0 ? `
     <div class="ghost-banner">
@@ -1097,7 +1231,7 @@ function renderBlitzStart() {
 }
 
 function buildBlitzQueue() {
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   // Shuffle all cards
   blitzQueue = deck.cards.map((c, i) => i).sort(() => Math.random() - 0.5);
   blitzQueueIdx = 0;
@@ -1111,7 +1245,7 @@ function startBlitz(ghostMode) {
   blitzCorrect = 0;
   blitzTotal = 0;
   blitzGhostMode = ghostMode;
-  blitzGhostScore = state.bestBlitz[DECKS[currentDeck].id] || 0;
+  blitzGhostScore = state.bestBlitz[ALL_DECKS[currentDeck].id] || 0;
   buildBlitzQueue();
   renderBlitzRound();
   blitzTimer = setInterval(blitzTick, 1000);
@@ -1141,7 +1275,7 @@ function getMultiplier() {
 
 function renderBlitzRound() {
   if (!blitzActive) return;
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   if (blitzQueueIdx >= blitzQueue.length) {
     buildBlitzQueue();
   }
@@ -1210,9 +1344,9 @@ function blitzAnswer(btnIdx, correct) {
     // Show correct answer
     blitzCurrentChoices.forEach((ci, i) => {
       if (ci === blitzCurrentChoices.find((c, j) => {
-        const deck = DECKS[currentDeck];
+        const deck = ALL_DECKS[currentDeck];
         return deck.cards[c] && blitzCurrentChoices.indexOf(c) === blitzCurrentChoices.findIndex(x => {
-          return DECKS[currentDeck].cards[x].en === DECKS[currentDeck].cards[blitzQueue[blitzQueueIdx]].en;
+          return ALL_DECKS[currentDeck].cards[x].en === ALL_DECKS[currentDeck].cards[blitzQueue[blitzQueueIdx]].en;
         });
       })) {
         const cb = document.getElementById('choice-' + i);
@@ -1220,7 +1354,7 @@ function blitzAnswer(btnIdx, correct) {
       }
     });
     // Find and highlight correct
-    const deck = DECKS[currentDeck];
+    const deck = ALL_DECKS[currentDeck];
     const correctCard = deck.cards[blitzQueue[blitzQueueIdx]];
     blitzCurrentChoices.forEach((ci, i) => {
       if (deck.cards[ci].en === correctCard.en) {
@@ -1236,7 +1370,7 @@ function blitzAnswer(btnIdx, correct) {
 }
 
 function showBlitzResults() {
-  const deck = DECKS[currentDeck];
+  const deck = ALL_DECKS[currentDeck];
   const prevBest = state.bestBlitz[deck.id] || 0;
   const isNewPB = blitzScore > prevBest;
   if (isNewPB) state.bestBlitz[deck.id] = blitzScore;
@@ -1259,6 +1393,244 @@ function showBlitzResults() {
       ${prevBest > 0 ? `<button class="start-btn ghost" onclick="startBlitz(true)" style="margin-top:10px;">👻 ゴーストモード</button>` : ''}
     </div>
   `;
+}
+
+
+// ===== MASTERY GAME (EVERYTHING mode) =====
+let masteryQueue = [];
+let masteryCurrentIdx = 0;
+let masteryChoicesLocked = false;
+let masteryLastRemaining = -1;
+
+function getMasteryKey(card) {
+  return card._sourceId + ':' + card._sourceIdx;
+}
+
+function getMasteryCount(card) {
+  return (state.mastery || {})[getMasteryKey(card)] || 0;
+}
+
+function buildMasteryQueue() {
+  const deck = ALL_DECKS.find(d => d.id === 'everything');
+  if (!state.mastery) state.mastery = {};
+  // Only cards not yet mastered (< 3 correct)
+  masteryQueue = deck.cards
+    .filter(c => getMasteryCount(c) < 3)
+    .sort(() => Math.random() - 0.5);
+}
+
+function getMasteryRemaining() {
+  const deck = ALL_DECKS.find(d => d.id === 'everything');
+  if (!state.mastery) state.mastery = {};
+  return deck.cards.filter(c => getMasteryCount(c) < 3).length;
+}
+
+function showMilestoneBanner(remaining) {
+  const prev = masteryLastRemaining;
+  masteryLastRemaining = remaining;
+
+  let msg = null;
+  if (remaining <= 0) {
+    msg = 'You did it! よくできました！🎉';
+  } else if (remaining <= 5 && (prev === -1 || prev > 5)) {
+    msg = "You're almost there! あと５つ！";
+  } else if (remaining <= 10 && (prev === -1 || prev > 10)) {
+    msg = 'Only 10 more! もう少し！';
+  } else if (remaining <= 20 && (prev === -1 || prev > 20)) {
+    msg = 'Only 20 to go! がんばって！';
+  }
+
+  if (msg) {
+    const el = document.createElement('div');
+    let cls = 'mastery-graduate';
+    if (remaining <= 0) cls += ' milestone-done';
+    else if (remaining <= 5) cls += ' milestone-5';
+    else if (remaining <= 10) cls += ' milestone-10';
+    else if (remaining <= 20) cls += ' milestone-20';
+    el.className = cls;
+    el.innerHTML = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), remaining <= 0 ? 3500 : 2400);
+  }
+}
+
+function renderMasteryGame() {
+  document.getElementById('study-area').classList.add('hidden');
+  document.getElementById('blitz-area').classList.add('hidden');
+
+  let el = document.getElementById('mastery-area');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mastery-area';
+    el.style.cssText = 'padding: 0 20px 100px;';
+    document.getElementById('main').appendChild(el);
+  }
+  el.classList.remove('hidden');
+
+  buildMasteryQueue();
+  const remaining = getMasteryRemaining();
+  masteryLastRemaining = remaining;
+
+  if (remaining === 0) {
+    showMasteryComplete(el);
+    return;
+  }
+
+  masteryCurrentIdx = 0;
+  renderMasteryCard(el);
+}
+
+function renderMasteryCard(container) {
+  if (!container) container = document.getElementById('mastery-area');
+  const remaining = getMasteryRemaining();
+  const deck = ALL_DECKS.find(d => d.id === 'everything');
+  const total = deck.cards.length;
+  const graduated = total - remaining;
+  const pct = Math.round(graduated / total * 100);
+
+  if (masteryCurrentIdx >= masteryQueue.length) {
+    // Reshuffle remaining
+    buildMasteryQueue();
+    masteryCurrentIdx = 0;
+    if (masteryQueue.length === 0) { showMasteryComplete(container); return; }
+  }
+
+  const card = masteryQueue[masteryCurrentIdx];
+  const hits = getMasteryCount(card);
+  masteryChoicesLocked = false;
+
+  // Build 3 wrong choices from all_decks everything pool
+  const allCards = deck.cards;
+  const others = allCards.filter(c => getMasteryKey(c) !== getMasteryKey(card));
+  const wrongs = others.sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = [card, ...wrongs].sort(() => Math.random() - 0.5);
+
+  const pips = [0,1,2].map(i =>
+    `<div class="pip${hits > i ? (hits === 2 ? ' almost' : ' filled') : ''}"></div>`
+  ).join('');
+
+  container.innerHTML = `
+    <div class="mastery-progress-wrap">
+      <div class="mastery-progress-bar" style="width:${pct}%"></div>
+    </div>
+    <div class="mastery-hud">
+      <div class="m-stat"><div class="m-val">${graduated}</div><div class="m-lbl">graduated</div></div>
+      <div class="m-stat"><div class="m-val">${remaining}</div><div class="m-lbl">remaining</div></div>
+      <div class="m-stat"><div class="m-val">${total}</div><div class="m-lbl">total</div></div>
+    </div>
+    <div class="card-counter">この カード: ${hits}/3 correct</div>
+    <div class="pip-row">${pips}</div>
+    <div style="margin-top:14px"></div>
+    <div class="blitz-card">
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--text3);margin-bottom:8px;">${card.kana}</div>
+      <div class="card-jp${card.q.length > 5 ? ' sm' : ''}">${card.q}</div>
+    </div>
+    <div class="blitz-choices" id="mastery-choices">
+      ${choices.map((c, i) => `
+        <button class="choice-btn" id="mc-${i}" onclick="masteryAnswer(${i}, '${getMasteryKey(c)}', '${getMasteryKey(card)}')">${c.en}</button>
+      `).join('')}
+    </div>
+    <div style="margin-top:16px;text-align:center;">
+      <button onclick="resetMastery()" style="font-size:11px;font-family:var(--font-mono);color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;">reset progress</button>
+    </div>
+  `;
+}
+
+function masteryAnswer(btnIdx, chosenKey, correctKey) {
+  if (masteryChoicesLocked) return;
+  masteryChoicesLocked = true;
+
+  const btn = document.getElementById('mc-' + btnIdx);
+  const correct = chosenKey === correctKey;
+
+  if (correct) {
+    btn.className = 'choice-btn correct';
+    if (!state.mastery) state.mastery = {};
+    const card = masteryQueue[masteryCurrentIdx];
+    const key = getMasteryKey(card);
+    state.mastery[key] = Math.min(3, (state.mastery[key] || 0) + 1);
+    const newCount = state.mastery[key];
+
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+    updateHUD();
+    addXP(newCount === 3 ? 20 : 8); // bonus XP for graduating a card
+
+    saveState();
+    renderTabs();
+
+    const remaining = getMasteryRemaining();
+    showMilestoneBanner(remaining);
+
+    if (remaining === 0) {
+      setTimeout(() => {
+        const container = document.getElementById('mastery-area');
+        if (container) showMasteryComplete(container);
+      }, 800);
+      return;
+    }
+
+    // If card graduated (hit 3), remove from queue
+    if (newCount >= 3) {
+      masteryQueue.splice(masteryCurrentIdx, 1);
+      if (masteryCurrentIdx >= masteryQueue.length) masteryCurrentIdx = 0;
+    } else {
+      masteryCurrentIdx++;
+    }
+  } else {
+    btn.className = 'choice-btn wrong';
+    // Reset mastery count for this card back to 0 on wrong answer
+    const card = masteryQueue[masteryCurrentIdx];
+    const key = getMasteryKey(card);
+    if (state.mastery && state.mastery[key] > 0) {
+      state.mastery[key] = 0;
+      saveState();
+      renderTabs();
+    }
+    state.streak = 0;
+    updateHUD();
+    // Show correct answer highlighted
+    for (let i = 0; i < 4; i++) {
+      const b = document.getElementById('mc-' + i);
+      if (b && b.dataset && b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + correctKey + "', '" + correctKey + "'")) {
+        b.className = 'choice-btn correct';
+      }
+    }
+    // Simpler: find which button has correctKey as its chosen key
+    document.querySelectorAll('#mastery-choices .choice-btn').forEach((b, i) => {
+      const onclick = b.getAttribute('onclick') || '';
+      if (onclick.includes("'" + correctKey + "', '" + correctKey + "'")) {
+        b.className = 'choice-btn correct';
+      }
+    });
+    masteryCurrentIdx++;
+  }
+
+  setTimeout(() => {
+    const container = document.getElementById('mastery-area');
+    if (container) renderMasteryCard(container);
+  }, 700);
+}
+
+function showMasteryComplete(container) {
+  container.innerHTML = `
+    <div class="mastery-complete">
+      <div class="trophy">🏆</div>
+      <h2>よくできました！</h2>
+      <p>You mastered all ${ALL_DECKS.find(d=>d.id==='everything').cards.length} cards!<br>
+      Every single word and grammar pattern — 3 correct each.<br>
+      <strong>すごい！ (Amazing!)</strong></p>
+      <button class="start-btn" onclick="resetMastery()">もう一回！ Play again</button>
+    </div>
+  `;
+}
+
+function resetMastery() {
+  state.mastery = {};
+  masteryLastRemaining = -1;
+  saveState();
+  renderTabs();
+  renderMasteryGame();
 }
 
 // ===== INIT =====
