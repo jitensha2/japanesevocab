@@ -1,1677 +1,1270 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>単語カード — Japanese Flashcards</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700;900&family=Zen+Kaku+Gothic+New:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<title>たんご れんしゅう — Tango Renshuu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f0ede8;
-    --border: #ddd9d0;
-    --accent: #b8860b;
-    --accent2: #2266aa;
-    --accent3: #cc3322;
-    --accent4: #2a7a4f;
-    --text: #1a1612;
-    --muted: #9a9388;
-    --muted2: #6e6860;
+    --bg: #ffffff;
+    --bg2: #f8f7f4;
+    --bg3: #f0efe9;
+    --text: #1a1a1a;
+    --text2: #555;
+    --text3: #888;
+    --accent: #e84040;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --gold: #d97706;
+    --border: rgba(0,0,0,0.08);
+    --card-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    --radius: 12px;
+    --font-jp: 'Noto Sans JP', sans-serif;
+    --font-mono: 'Space Mono', monospace;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
-    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-family: var(--font-jp);
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     overflow-x: hidden;
   }
 
-  /* subtle grid bg */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.18;
-    pointer-events: none;
-    z-index: 0;
-  }
+  /* LAYOUT */
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
 
-  /* HEADER */
-  header {
-    position: relative;
-    z-index: 10;
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  /* TOP HUD */
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    height: 52px;
   }
-
-  .logo {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
+  .hud-left { display: flex; align-items: center; gap: 12px; }
+  .hud-xp {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.05em;
   }
-
-  .logo-jp {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-weight: 900;
-    font-size: 1.3rem;
+  .level-badge {
+    background: var(--gold);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .hud-right { display: flex; align-items: center; gap: 16px; }
+  .streak-display {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
     color: var(--accent);
+  }
+  .streak-display.hot { color: #f97316; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+  .hud-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+  }
+
+  /* XP BAR */
+  #xp-bar-wrap {
+    position: fixed; top: 52px; left: 0; right: 0; z-index: 99;
+    height: 3px; background: var(--bg3);
+  }
+  #xp-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #f59e0b);
+    transition: width 0.5s ease;
+  }
+
+  /* MAIN CONTENT */
+  #main {
+    margin-top: 55px;
+    flex: 1;
+  }
+
+  /* DECK TABS */
+  #deck-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  #deck-tabs::-webkit-scrollbar { display: none; }
+  .deck-tab {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 16px;
+    border-radius: 10px 10px 0 0;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: var(--font-jp);
+    gap: 2px;
+    min-width: 90px;
+  }
+  .deck-tab .tab-jp { font-size: 13px; font-weight: 700; color: var(--text2); }
+  .deck-tab .tab-en { font-size: 10px; color: var(--text3); }
+  .deck-tab .tab-prog {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text3);
+    margin-top: 3px;
+  }
+  .deck-tab:hover { background: var(--bg2); }
+  .deck-tab.active {
+    background: var(--bg);
+    border-color: var(--border);
+    border-bottom-color: var(--bg);
+    margin-bottom: -1px;
+  }
+  .deck-tab.active .tab-jp { color: var(--accent); }
+  .deck-tab.mastered .tab-prog { color: var(--accent3); }
+  .deck-tab.japanese2 .tab-en { color: #7c3aed; font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .deck-tab.japanese2 .tab-bar-fill { background: #7c3aed; }
+  .deck-tab.japanese2.active .tab-jp { color: #7c3aed; }
+
+  /* MODE SWITCHER */
+  #mode-bar {
+    display: flex; gap: 10px;
+    padding: 16px 20px;
+    background: var(--bg);
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    cursor: pointer;
+    font-family: var(--font-jp);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: all 0.15s;
+  }
+  .mode-btn .mode-icon { font-size: 18px; }
+  .mode-btn:hover { background: var(--bg3); border-color: rgba(0,0,0,0.15); }
+  .mode-btn.active {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+
+  /* STUDY MODE */
+  #study-area { padding: 0 20px 100px; }
+
+  .card-counter {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 16px;
     letter-spacing: 0.05em;
   }
 
-  .logo-en {
-    font-size: 0.68rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted2);
-  }
-
-  .deck-tabs {
-    display: flex;
-    gap: 6px;
-  }
-
-  .deck-tab {
-    padding: 5px 14px;
+  .flashcard {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
     border-radius: 20px;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--muted2);
-    font-family: inherit;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .deck-tab.active {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-    font-weight: 700;
-  }
-
-  .deck-tab:hover:not(.active) {
-    border-color: var(--muted2);
-    color: var(--text);
-  }
-
-  /* PROGRESS */
-  .progress-bar-wrap {
-    position: relative;
-    z-index: 10;
-    height: 3px;
-    background: var(--border);
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.4s ease;
-  }
-
-  .progress-info {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 24px;
-    font-size: 0.7rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .progress-count { color: var(--accent); font-weight: 700; font-size: 0.85rem; }
-
-  .mode-toggle {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
-
-  .mode-btn {
-    padding: 3px 10px;
-    border-radius: 3px;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--muted);
-    font-family: inherit;
-    font-size: 0.65rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .mode-btn.active { background: var(--surface2); color: var(--text); border-color: var(--muted2); }
-
-  /* MAIN AREA */
-  .card-area {
-    position: relative;
-    z-index: 5;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 20px;
-    min-height: 0;
-  }
-
-  /* CARD */
-  .card-stack {
-    position: relative;
-    width: 100%;
-    max-width: 440px;
-  }
-
-  /* Ghost cards behind */
-  .card-stack::before,
-  .card-stack::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    border-radius: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-  }
-
-  .card-stack::after {
-    width: calc(100% - 24px);
-    height: 100%;
-    top: 10px;
-    transform: translateX(-50%);
-    z-index: 1;
-    opacity: 0.5;
-  }
-
-  .card-stack::before {
-    width: calc(100% - 48px);
-    height: 100%;
-    top: 18px;
-    transform: translateX(-50%);
-    z-index: 0;
-    opacity: 0.3;
-  }
-
-  .card {
-    position: relative;
-    z-index: 2;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 40px 32px;
-    text-align: center;
+    padding: 40px 28px;
+    min-height: 280px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     cursor: pointer;
     user-select: none;
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s, box-shadow 0.15s, border-color 0.3s;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    position: relative;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .flashcard:active { transform: scale(0.98); box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .flashcard .tap-hint {
+    position: absolute; bottom: 16px;
+    font-size: 11px; color: var(--text3);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
   }
 
-  .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-  }
+  .card-face-0 { /* question */ }
+  .card-face-1 { /* revealed */ }
+  .card-face-2 { /* detail */ }
 
-  .card:active { transform: translateY(0) scale(0.99); }
-
-  .card.reveal-1 { border-color: rgba(126,184,212,0.3); }
-  .card.reveal-2 { border-color: rgba(232,201,109,0.4); }
-
-  /* Card reveal animation */
-  @keyframes revealIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .reveal-anim { animation: revealIn 0.3s ease forwards; }
-
-  /* Card content layers */
-  .card-type-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 3px;
-    background: var(--surface2);
-    color: var(--muted2);
-    border: 1px solid var(--border);
-  }
-
-  .card-type-badge.verb { color: var(--accent); border-color: rgba(232,201,109,0.3); }
-  .card-type-badge.word { color: var(--accent2); border-color: rgba(126,184,212,0.3); }
-
-  .card-num {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-  }
-
-  /* Layer 0: Japanese (always visible) */
-  .layer-jp {
-    font-family: 'Noto Sans JP', sans-serif;
+  .card-jp {
+    font-size: 52px;
     font-weight: 700;
-    font-size: 4rem;
-    line-height: 1.1;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-
-  .layer-romaji {
-    font-size: 0.85rem;
-    color: var(--muted2);
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-
-  .layer-en-front {
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: clamp(1.1rem, 4vw, 1.9rem);
-    color: var(--text);
-    margin-bottom: 8px;
-    width: 100%;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    line-height: 1.35;
+    letter-spacing: 0.05em;
     text-align: center;
-    padding: 0 4px;
-  }
-
-  .tap-hint {
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .tap-hint svg { opacity: 0.5; }
-
-  /* Layer 1: English translation */
-  .layer-en {
-    margin-top: 20px;
-    border-top: 1px solid var(--border);
-    padding-top: 18px;
-    width: 100%;
-  }
-
-  .layer-en-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent2);
-    margin-bottom: 6px;
-  }
-
-  .layer-en-text {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
+    line-height: 1.2;
+    margin-bottom: 8px;
     color: var(--text);
-    font-style: italic;
   }
-
-  /* Layer 2: Conjugations */
-  .layer-conj {
-    margin-top: 18px;
+  .card-jp.sm { font-size: 36px; }
+  .card-kana {
+    font-size: 22px;
+    color: var(--text2);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .card-en {
+    font-size: 22px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+  .card-example {
+    font-size: 15px;
+    color: var(--text2);
+    text-align: center;
+    line-height: 1.7;
     border-top: 1px solid var(--border);
     padding-top: 16px;
-    width: 100%;
+    margin-top: 12px;
   }
-
-  .conj-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 12px;
-  }
-
-  .conj-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    text-align: left;
-  }
-
-  .conj-item {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-  }
-
-  .conj-item-label {
-    font-size: 0.58rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 3px;
-  }
-
-  .conj-item-label.a { color: var(--accent3); }
-  .conj-item-label.i { color: var(--accent2); }
-  .conj-item-label.e { color: var(--accent4); }
-  .conj-item-label.te { color: #c084fc; }
-
-  .conj-item-jp {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 1.15rem;
-    color: var(--text);
-  }
-
-  .conj-item-suffix {
-    font-size: 0.65rem;
-    color: var(--muted2);
-    margin-top: 1px;
-  }
-
-  /* CONTROLS */
-  .controls {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 20px 24px;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .ctrl-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--muted2);
-    cursor: pointer;
-    transition: all 0.15s;
-    font-size: 1.1rem;
-  }
-
-  .ctrl-btn:hover { border-color: var(--muted2); color: var(--text); transform: scale(1.05); }
-
-  .ctrl-btn.primary {
-    width: 60px; height: 60px;
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-    font-size: 1.4rem;
-  }
-
-  .ctrl-btn.primary:hover { background: #f0d880; transform: scale(1.08); }
-
-  .shuffle-indicator {
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-align: center;
-    min-width: 60px;
-  }
-
-  /* Done screen */
-  .done-screen {
-    text-align: center;
-    padding: 32px;
-  }
-
-  .done-jp {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 3rem;
-    font-weight: 900;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
-
-  .done-en {
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: 1.2rem;
-    color: var(--muted2);
-    margin-bottom: 24px;
-  }
-
-  .restart-btn {
-    padding: 12px 32px;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .restart-btn:hover { background: #f0d880; }
-
-  /* hidden util */
-  .hidden { display: none !important; }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .slide-up { animation: slideUp 0.35s ease forwards; }
-
-  @media (max-width: 480px) {
-    .layer-jp { font-size: 3rem; }
-    .card { padding: 32px 24px; min-height: 260px; }
-    .conj-grid { grid-template-columns: 1fr 1fr; }
-  }
-
-  /* ═══════════════════════════════════════════
-     GAME HUD — clean, peripheral, non-competing
-  ═══════════════════════════════════════════ */
-
-  .game-hud {
-    display: none;
-    position: relative;
-    z-index: 10;
-    background: #1c1a14;
-    color: #f0ede6;
-    padding: 10px 20px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border-bottom: 2px solid var(--border);
-  }
-  .game-hud.visible { display: flex; }
-
-  .hud-timer {
-    font-size: 2rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
-    min-width: 44px;
-    text-align: center;
-    color: #f5c842;
-    transition: color 0.2s;
-    font-family: 'DM Serif Display', serif;
-  }
-  .hud-timer.danger { color: #ff5555; }
-  @keyframes urgentPulse { from { opacity: 1; } to { opacity: 0.5; } }
-  .hud-timer.danger { animation: urgentPulse 0.4s ease-in-out infinite alternate; }
-
-  .hud-center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-  }
-
-  .hud-score {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.01em;
-  }
-
-  .hud-streak {
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #ff9f1c;
-  }
-  .hud-streak.cold { color: #666; }
-
-  /* XP bar */
-  .hud-xp-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
-    min-width: 90px;
-  }
-  .hud-level {
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #888;
-  }
-  .hud-level span { color: #f5c842; font-weight: 700; }
-  .hud-xp-track {
-    width: 90px;
-    height: 6px;
-    background: #333;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .hud-xp-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #f5c842, #ff9f1c);
-    border-radius: 3px;
-    transition: width 0.5s cubic-bezier(.17,.67,.35,1.3);
-  }
-
-  /* Ghost row */
-  .ghost-bar {
-    display: none;
-    position: relative;
-    z-index: 10;
-    background: #111;
-    padding: 5px 20px;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #555;
-    border-bottom: 1px solid #222;
-  }
-  .ghost-bar.visible { display: flex; }
-  .ghost-best { color: #7eb8d4; }
-  .ghost-ahead { color: #82d4a0; }
-  .ghost-behind { color: #e87d6d; }
-
-  /* Blitz mode toggle button */
-  .blitz-toggle {
-    padding: 5px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--muted2);
-    font-family: inherit;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: 8px;
-  }
-  .blitz-toggle.on {
-    background: #f5c842;
-    color: #1a1208;
-    border-color: #f5c842;
-    font-weight: 700;
-  }
-  .blitz-toggle:hover:not(.on) { border-color: var(--muted2); color: var(--text); }
-
-  /* Floating score pop */
-  .score-pop {
-    position: fixed;
-    font-size: 1.3rem;
-    font-weight: 700;
-    pointer-events: none;
-    z-index: 999;
-    animation: scorePop 0.8s ease-out forwards;
-  }
-  @keyframes scorePop {
-    0%   { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
-  }
-
-  /* Card flash feedback */
-  @keyframes flashGreen {
-    0%   { box-shadow: 0 0 0 0 rgba(42,122,79,0); }
-    30%  { box-shadow: 0 0 0 6px rgba(42,122,79,0.35); }
-    100% { box-shadow: 0 0 0 0 rgba(42,122,79,0); }
-  }
-  @keyframes flashRed {
-    0%   { box-shadow: 0 0 0 0 rgba(204,51,34,0); }
-    30%  { box-shadow: 0 0 0 6px rgba(204,51,34,0.35); }
-    100% { box-shadow: 0 0 0 0 rgba(204,51,34,0); }
-  }
-  .card.flash-correct { animation: flashGreen 0.5s ease forwards; }
-  .card.flash-wrong   { animation: flashRed 0.5s ease forwards; }
-
-  /* Level-up banner */
-  .levelup-banner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
-    background: #1c1a14;
-    border: 2px solid #f5c842;
-    border-radius: 12px;
-    padding: 20px 36px;
-    text-align: center;
-    z-index: 1000;
-    pointer-events: none;
-    opacity: 0;
-    transition: all 0.25s cubic-bezier(.17,.67,.35,1.3);
-  }
-  .levelup-banner.show {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  .levelup-jp {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 2rem;
-    font-weight: 900;
-    color: #f5c842;
-  }
-  .levelup-en {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #888;
+  .card-example .ex-en {
+    font-size: 12px;
+    color: var(--text3);
     margin-top: 4px;
   }
+  .card-tag {
+    position: absolute; top: 14px; right: 14px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--bg3);
+    color: var(--text3);
+    letter-spacing: 0.04em;
+  }
 
-  /* Blitz end screen */
-  .blitz-results {
-    text-align: center;
-    padding: 28px 20px;
+  .study-actions {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-top: 16px;
   }
-  .blitz-results-title {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: var(--accent);
-    margin-bottom: 18px;
-  }
-  .blitz-results-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .blitz-stat {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-  }
-  .blitz-stat-num {
-    font-size: 1.8rem;
+  .study-btn {
+    padding: 14px;
+    border-radius: var(--radius);
+    border: 1.5px solid;
+    font-family: var(--font-jp);
+    font-size: 14px;
     font-weight: 700;
-    color: var(--text);
-    display: block;
-  }
-  .blitz-stat-label {
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 2px;
-    display: block;
-  }
-  .blitz-stat.highlight .blitz-stat-num { color: #f5c842; }
-  .blitz-stat.ghost-stat .blitz-stat-num { color: #7eb8d4; }
-  .blitz-new-best {
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #f5c842;
-    margin-bottom: 14px;
-    min-height: 18px;
-  }
-  .blitz-play-again {
-    padding: 12px 32px;
-    background: #f5c842;
-    color: #1a1208;
-    border: none;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.15s;
-    margin-right: 10px;
-  }
-  .blitz-play-again:hover { background: #ffd85e; }
-  .blitz-study-btn {
-    padding: 12px 20px;
-    background: none;
-    color: var(--muted2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     cursor: pointer;
     transition: all 0.15s;
   }
-  .blitz-study-btn:hover { color: var(--text); border-color: var(--muted2); }
+  .btn-knew {
+    background: var(--bg);
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+  .btn-knew:hover { background: #f0fdf4; }
+  .btn-retry {
+    background: var(--bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-retry:hover { background: #fef2f2; }
 
+  /* BLITZ MODE */
+  #blitz-area { padding: 0 20px 100px; }
+  .blitz-timer-ring {
+    display: flex; align-items: center; justify-content: center;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    border: 5px solid var(--accent);
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 auto 20px;
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .blitz-timer-ring.warning { border-color: #f97316; color: #f97316; }
+  .blitz-timer-ring.danger { border-color: var(--accent); color: var(--accent); animation: pulse 0.5s infinite; }
 
+  .blitz-score {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+  }
+  .blitz-score .pts { font-size: 28px; font-weight: 700; color: var(--text); }
+
+  .multiplier-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-left: 8px;
+    animation: pop 0.2s ease;
+  }
+  .multiplier-badge.x3 { background: #f97316; }
+  @keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+
+  .blitz-card {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    min-height: 200px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .blitz-choices {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .choice-btn {
+    padding: 14px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    cursor: pointer;
+    font-family: var(--font-jp);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all 0.12s;
+  }
+  .choice-btn:hover { background: var(--bg3); }
+  .choice-btn.correct { background: #f0fdf4; border-color: var(--accent3); color: var(--accent3); }
+  .choice-btn.wrong { background: #fef2f2; border-color: var(--accent); color: var(--accent); }
+  .choice-btn:disabled { cursor: default; }
+
+  /* GHOST MODE */
+  .ghost-banner {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg3);
+    border: 1px dashed rgba(0,0,0,0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--font-mono);
+    margin-bottom: 16px;
+    letter-spacing: 0.03em;
+  }
+  .ghost-icon { font-size: 16px; opacity: 0.6; }
+
+  /* START SCREEN */
+  .start-screen {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .start-screen h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .start-screen p {
+    font-size: 15px;
+    color: var(--text2);
+    margin-bottom: 32px;
+  }
+  .start-btn {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-jp);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .start-btn:hover { background: #c73333; transform: translateY(-1px); }
+  .start-btn.ghost { background: var(--bg3); color: var(--text2); margin-top: 10px; border: 1.5px solid var(--border); }
+  .start-btn.ghost:hover { background: var(--bg2); }
+
+  /* RESULTS */
+  .results-screen {
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .results-score-big {
+    font-family: var(--font-mono);
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .results-label { font-size: 14px; color: var(--text3); margin-bottom: 24px; }
+  .results-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 14px 8px;
+  }
+  .stat-val { font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--text); }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .pb-badge {
+    background: #fef3c7;
+    border: 1.5px solid #fbbf24;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
+
+  /* XP POPUP */
+  .xp-popup {
+    position: fixed;
+    top: 60px; right: 20px;
+    background: var(--text);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 20px;
+    z-index: 200;
+    animation: floatUp 1.5s ease forwards;
+    pointer-events: none;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-40px); }
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--text);
+    color: white;
+    font-family: var(--font-jp);
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 200;
+    animation: toastIn 2.5s ease forwards;
+    white-space: nowrap;
+  }
+  @keyframes toastIn {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* DECK COMPLETE */
+  .deck-complete {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .deck-complete h3 { font-size: 16px; color: var(--accent3); margin-bottom: 4px; }
+  .deck-complete p { font-size: 13px; color: #4ade80; }
+
+  .hidden { display: none !important; }
+
+  /* PROGRESS BAR on deck tab */
+  .tab-bar {
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    margin-top: 4px;
+    width: 60px;
+    overflow: hidden;
+  }
+  .tab-bar-fill {
+    height: 100%;
+    background: var(--accent3);
+    border-radius: 2px;
+    transition: width 0.4s;
+  }
+
+  /* Household label */
+  .household-tip {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #1e40af;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .household-tip strong { font-weight: 700; }
+
+  @media (max-width: 400px) {
+    .card-jp { font-size: 42px; }
+    .blitz-choices { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
+<div id="app">
 
-<header>
-  <div class="logo">
-    <span class="logo-jp">単語カード</span>
-    <span class="logo-en">Flashcards</span>
-  </div>
-  <div class="deck-tabs" id="deckTabs"></div>
-</header>
-
-<div class="progress-bar-wrap">
-  <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
-</div>
-
-<div class="progress-info">
-  <span><span class="progress-count" id="cardCount">1</span> / <span id="totalCount">1</span></span>
-  <div class="mode-toggle">
-    <button class="mode-btn active" id="btnJpEn" onclick="setDirection('jp-en')">JP → EN</button>
-    <button class="mode-btn" id="btnEnJp" onclick="setDirection('en-jp')">EN → JP</button>
-  </div>
-  <span id="deckLabel" style="color:var(--muted2);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;"></span>
-  <button class="blitz-toggle" id="blitzToggle" onclick="toggleBlitz()">⚡ Blitz</button>
-</div>
-
-
-<!-- GAME HUD -->
-<div class="game-hud" id="gameHud">
-  <div class="hud-timer" id="hudTimer">60</div>
-  <div class="hud-center">
-    <div class="hud-score" id="hudScore">0</div>
-    <div class="hud-streak cold" id="hudStreak">no streak</div>
-  </div>
-  <div class="hud-xp-wrap">
-    <div class="hud-level">LV <span id="hudLevel">1</span></div>
-    <div class="hud-xp-track"><div class="hud-xp-fill" id="hudXpFill" style="width:0%"></div></div>
-    <div class="hud-level" id="hudXpLabel">0 / 100 XP</div>
-  </div>
-</div>
-
-<!-- GHOST BAR -->
-<div class="ghost-bar" id="ghostBar">
-  <span>👻 Best: <span class="ghost-best" id="ghostBest">—</span></span>
-  <span id="ghostDelta">—</span>
-</div>
-
-<!-- LEVEL UP BANNER -->
-<div class="levelup-banner" id="levelupBanner">
-  <div class="levelup-jp">レベルアップ！</div>
-  <div class="levelup-en" id="levelupText">Level 2</div>
-</div>
-
-<div class="card-area" id="cardArea">
-  <div class="card-stack" id="cardStack">
-    <div class="card" id="mainCard" onclick="tapCard()">
-      <!-- content injected by JS -->
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-left">
+      <span class="level-badge" id="level-badge">LV1</span>
+      <span class="hud-xp" id="hud-xp">0 XP</span>
+    </div>
+    <span class="hud-title">たんご れんしゅう</span>
+    <div class="hud-right">
+      <span class="streak-display" id="streak-display">🔥0</span>
     </div>
   </div>
-</div>
+  <div id="xp-bar-wrap"><div id="xp-bar" style="width:0%"></div></div>
 
-<div class="controls">
-  <button class="ctrl-btn" onclick="prevCard()" title="Previous">←</button>
-  <button class="ctrl-btn" onclick="shuffleDeck()" title="Shuffle" style="font-size:0.9rem;">⇌</button>
-  <button class="ctrl-btn primary" onclick="nextCard()" title="Next">→</button>
-  <button class="ctrl-btn" onclick="resetCard()" title="Reset card">↺</button>
+  <div id="main">
+    <!-- DECK TABS -->
+    <div id="deck-tabs"></div>
+
+    <!-- MODE BAR -->
+    <div id="mode-bar">
+      <button class="mode-btn active" id="btn-study" onclick="setMode('study')">
+        <span class="mode-icon">📖</span>
+        <span>べんきょう</span>
+      </button>
+      <button class="mode-btn" id="btn-blitz" onclick="setMode('blitz')">
+        <span class="mode-icon">⚡</span>
+        <span>ブリッツ</span>
+      </button>
+    </div>
+
+    <!-- STUDY AREA -->
+    <div id="study-area"></div>
+
+    <!-- BLITZ AREA -->
+    <div id="blitz-area" class="hidden"></div>
+  </div>
 </div>
 
 <script>
-// ─────────────────────────────────────────────
-// DATA — extensible: add decks freely
-// type: 'verb' = 3-tap reveal (JP → EN → conjugations)
-// type: 'word' = 1-tap reveal (JP → EN only)
-// ─────────────────────────────────────────────
-
-const decks = [
+// ===== DATA =====
+const DECKS = [
   {
-    id: 'verbs',
-    label: '動詞 Verbs 1',
+    id: 'ie',
+    jp: 'いえ',
+    en: 'Home',
+    tag: 'household',
+    tip: 'おかあさんと いえで れんしゅうしよう！— Practice these with mom around the house!',
     cards: [
-      // ── Group 1 (godan) く ──
-      { type:'verb', jp:'書く',  romaji:'kaku',    en:'to write',            a:'かか',   i:'かき',   e:'かけ',   te:'かいて' },
-      { type:'verb', jp:'聞く',  romaji:'kiku',    en:'to listen / ask',     a:'きか',   i:'きき',   e:'きけ',   te:'きいて' },
-      { type:'verb', jp:'歩く',  romaji:'aruku',   en:'to walk',             a:'あるか', i:'あるき', e:'あるけ', te:'あるいて' },
-      { type:'verb', jp:'置く',  romaji:'oku',     en:'to put down',         a:'おか',   i:'おき',   e:'おけ',   te:'おいて' },
-      { type:'verb', jp:'行く',  romaji:'iku',     en:'to go',               a:'いか',   i:'いき',   e:'いけ',   te:'いって' },
-      // ── Group 1 (godan) ぐ ──
-      { type:'verb', jp:'泳ぐ',  romaji:'oyogu',   en:'to swim',             a:'およが', i:'およぎ', e:'およげ', te:'およいで' },
-      // ── Group 1 (godan) す ──
-      { type:'verb', jp:'話す',  romaji:'hanasu',  en:'to speak',            a:'はなさ', i:'はなし', e:'はなせ', te:'はなして' },
-      { type:'verb', jp:'貸す',  romaji:'kasu',    en:'to lend',             a:'かさ',   i:'かし',   e:'かせ',   te:'かして' },
-      { type:'verb', jp:'出す',  romaji:'dasu',    en:'to submit / put out', a:'ださ',   i:'だし',   e:'だせ',   te:'だして' },
-      { type:'verb', jp:'消す',  romaji:'kesu',    en:'to turn off / erase', a:'けさ',   i:'けし',   e:'けせ',   te:'けして' },
-      // ── Group 1 (godan) つ ──
-      { type:'verb', jp:'待つ',  romaji:'matsu',   en:'to wait',             a:'また',   i:'まち',   e:'まて',   te:'まって' },
-      { type:'verb', jp:'立つ',  romaji:'tatsu',   en:'to stand',            a:'たた',   i:'たち',   e:'たて',   te:'たって' },
-      { type:'verb', jp:'持つ',  romaji:'motsu',   en:'to hold / carry / have', a:'もた', i:'もち',  e:'もて',   te:'もって' },
-      { type:'verb', jp:'勝つ',  romaji:'katsu',   en:'to win',              a:'かた',   i:'かち',   e:'かて',   te:'かって' },
-      // ── Group 1 (godan) む ──
-      { type:'verb', jp:'飲む',  romaji:'nomu',    en:'to drink',            a:'のま',   i:'のみ',   e:'のめ',   te:'のんで' },
-      { type:'verb', jp:'読む',  romaji:'yomu',    en:'to read',             a:'よま',   i:'よみ',   e:'よめ',   te:'よんで' },
-      { type:'verb', jp:'住む',  romaji:'sumu',    en:'to live / reside',    a:'すま',   i:'すみ',   e:'すめ',   te:'すんで' },
-      { type:'verb', jp:'噛む',  romaji:'kamu',    en:'to bite / chew',      a:'かま',   i:'かみ',   e:'かめ',   te:'かんで' },
-      { type:'verb', jp:'休む',  romaji:'yasumu',  en:'to rest / be absent', a:'やすま', i:'やすみ', e:'やすめ', te:'やすんで' },
-      // ── Group 1 (godan) ぬ ──
-      { type:'verb', jp:'死ぬ',  romaji:'shinu',   en:'to die',              a:'しな',   i:'しに',   e:'しね',   te:'しんで' },
-      // ── Group 1 (godan) ぶ ──
-      { type:'verb', jp:'遊ぶ',  romaji:'asobu',   en:'to play',             a:'あそば', i:'あそび', e:'あそべ', te:'あそんで' },
-      // ── Group 1 (godan) る ──
-      { type:'verb', jp:'作る',  romaji:'tsukuru', en:'to make',             a:'つくら', i:'つくり', e:'つくれ', te:'つくって' },
-      { type:'verb', jp:'乗る',  romaji:'noru',    en:'to ride / board',     a:'のら',   i:'のり',   e:'のれ',   te:'のって' },
-      { type:'verb', jp:'走る',  romaji:'hashiru', en:'to run',              a:'はしら', i:'はしり', e:'はしれ', te:'はしって' },
-      { type:'verb', jp:'取る',  romaji:'toru',    en:'to take / get',       a:'とら',   i:'とり',   e:'とれ',   te:'とって' },
-      { type:'verb', jp:'切る',  romaji:'kiru',    en:'to cut',              a:'きら',   i:'きり',   e:'きれ',   te:'きって' },
-      { type:'verb', jp:'分かる',romaji:'wakaru',  en:'to understand',       a:'わから', i:'わかり', e:'わかれ', te:'わかって' },
-      { type:'verb', jp:'知る',  romaji:'shiru',   en:'to get to know',      a:'しら',   i:'しり',   e:'しれ',   te:'しって' },
-      { type:'verb', jp:'入る',  romaji:'hairu',   en:'to enter / come in',  a:'はいら', i:'はいり', e:'はいれ', te:'はいって' },
-      { type:'verb', jp:'帰る',  romaji:'kaeru',   en:'to return (home)',    a:'かえら', i:'かえり', e:'かえれ', te:'かえって' },
-      { type:'verb', jp:'始まる',romaji:'hajimaru',en:'to start (intrans.)', a:'はじまら',i:'はじまり',e:'はじまれ',te:'はじまって' },
-      { type:'verb', jp:'終わる',romaji:'owaru',   en:'to finish',           a:'おわら', i:'おわり', e:'おわれ', te:'おわって' },
-      { type:'verb', jp:'ある',  romaji:'aru',     en:'to have / exist (things)', a:'なか (ない)', i:'あり', e:'あれ', te:'あって' },
-      { type:'verb', jp:'がんばる',romaji:'ganbaru',en:'to do one\'s best',  a:'がんばら',i:'がんばり',e:'がんばれ',te:'がんばって' },
-      { type:'verb', jp:'借りる',romaji:'kariru',  en:'to borrow ⚠ exception (ichidan)', a:'きら→借りな', i:'かりり→借り', e:'借りれ', te:'かりて' },
-      // ── Group 1 (godan) う ──
-      { type:'verb', jp:'会う',  romaji:'au',      en:'to meet',             a:'あわ',   i:'あい',   e:'あえ',   te:'あって' },
-      { type:'verb', jp:'洗う',  romaji:'arau',    en:'to wash',             a:'あらわ', i:'あらい', e:'あらえ', te:'あらって' },
-      { type:'verb', jp:'もらう',romaji:'morau',   en:'to receive',          a:'もらわ', i:'もらい', e:'もらえ', te:'もらって' },
-      { type:'verb', jp:'言う',  romaji:'iu',      en:'to say',              a:'いわ',   i:'いい',   e:'いえ',   te:'いって' },
-      { type:'verb', jp:'買う',  romaji:'kau',     en:'to buy',              a:'かわ',   i:'かい',   e:'かえ',   te:'かって' },
-      { type:'verb', jp:'使う',  romaji:'tsukau',  en:'to use',              a:'つかわ', i:'つかい', e:'つかえ', te:'つかって' },
-      { type:'verb', jp:'歌う',  romaji:'utau',    en:'to sing',             a:'うたわ', i:'うたい', e:'うたえ', te:'うたって' },
-      // ── Group 2 (ichidan) — replace ます with る ──
-      { type:'verb', jp:'食べる',romaji:'taberu',  en:'to eat',              a:'たべな', i:'たべ',   e:'たべれ', te:'たべて' },
-      { type:'verb', jp:'寝る',  romaji:'neru',    en:'to sleep',            a:'ねな',   i:'ね',     e:'ねれ',   te:'ねて' },
-      { type:'verb', jp:'つける',romaji:'tsukeru', en:'to turn on',          a:'つけな', i:'つけ',   e:'つけれ', te:'つけて' },
-      { type:'verb', jp:'開ける',romaji:'akeru',   en:'to open',             a:'あけな', i:'あけ',   e:'あけれ', te:'あけて' },
-      { type:'verb', jp:'閉める',romaji:'shimeru', en:'to close / shut',     a:'しめな', i:'しめ',   e:'しめれ', te:'しめて' },
-      { type:'verb', jp:'入れる',romaji:'ireru',   en:'to enter / put in',   a:'いれな', i:'いれ',   e:'いれれ', te:'いれて' },
-      { type:'verb', jp:'出る',  romaji:'deru',    en:'to get out / come out',a:'でな',  i:'で',     e:'でれ',   te:'でて' },
-      { type:'verb', jp:'あげる',romaji:'ageru',   en:'to give',             a:'あげな', i:'あげ',   e:'あげれ', te:'あげて' },
-      { type:'verb', jp:'捨てる',romaji:'suteru',  en:'to throw away',       a:'すてな', i:'すて',   e:'すてれ', te:'すてて' },
-      { type:'verb', jp:'始める',romaji:'hajimeru',en:'to start (trans.)',   a:'はじめな',i:'はじめ',e:'はじめれ',te:'はじめて' },
-      { type:'verb', jp:'教える',romaji:'oshieru', en:'to teach / tell',     a:'おしえな',i:'おしえ',e:'おしえれ',te:'おしえて' },
-      { type:'verb', jp:'見せる',romaji:'miseru',  en:'to show',             a:'みせな', i:'みせ',   e:'みせれ', te:'みせて' },
-      { type:'verb', jp:'覚える',romaji:'oboeru',  en:'to remember',         a:'おぼえな',i:'おぼえ',e:'おぼえれ',te:'おぼえて' },
-      { type:'verb', jp:'見る',  romaji:'miru',    en:'to see / watch',      a:'みな',   i:'み',     e:'みれ',   te:'みて' },
-      { type:'verb', jp:'いる',  romaji:'iru',     en:'to be / stay (person/animal)', a:'いな', i:'い', e:'いれ', te:'いて' },
-      { type:'verb', jp:'起きる',romaji:'okiru',   en:'to wake up ⚠ exception (ichidan)', a:'おきな', i:'おき', e:'おきれ', te:'おきて' },
-      { type:'verb', jp:'できる',romaji:'dekiru',  en:'to be able to ⚠ exception', a:'できな', i:'でき', e:'できれ', te:'できて' },
-      // ── Irregular ──
-      { type:'verb', jp:'くる',  romaji:'kuru',    en:'to come ★ irregular', a:'こ (こない)', i:'き', e:'こられ', te:'きて' },
-      { type:'verb', jp:'する',  romaji:'suru',    en:'to do ★ irregular',   a:'し (しない)', i:'し', e:'でき',   te:'して' },
-      { type:'verb', jp:'べんきょうをする', romaji:'benkyō wo suru', en:'to study ★ irregular', a:'し (しない)', i:'し', e:'でき', te:'して' },
-      // ── Wearing verbs ──
-      { type:'verb', jp:'かぶる', romaji:'kaburu',  en:'to put on (head — hat/cap)', a:'かぶら', i:'かぶり', e:'かぶれ', te:'かぶって' },
-      { type:'verb', jp:'かける', romaji:'kakeru',  en:'to put on (face — glasses)', a:'かけな', i:'かけ',   e:'かけれ', te:'かけて' },
-      { type:'verb', jp:'はく',   romaji:'haku',    en:'to put on (lower body — shoes/pants/skirt)', a:'はか', i:'はき', e:'はけ', te:'はいて' },
+      { q: 'いす', kana: 'いす', en: 'chair', ex: 'そのいすにすわってください。', exen: 'Please sit in that chair.' },
+      { q: 'つくえ', kana: 'つくえ', en: 'desk / table', ex: 'つくえのうえをかたづけて。', exen: 'Clean up your desk.' },
+      { q: 'まど', kana: 'まど', en: 'window', ex: 'まどをしめてください。', exen: 'Please close the window.' },
+      { q: 'ドア', kana: 'ドア', en: 'door', ex: 'ドアをあけてもいいですか。', exen: 'May I open the door?' },
+      { q: 'でんき', kana: 'でんき', en: 'light / electricity', ex: 'でんきをけして！', exen: 'Turn off the light!' },
+      { q: 'れいぞうこ', kana: 'れいぞうこ', en: 'refrigerator', ex: 'れいぞうこにジュースがある。', exen: 'There\'s juice in the fridge.' },
+      { q: 'おふろ', kana: 'おふろ', en: 'bath / bathtub', ex: 'おふろにはいる じかんだよ。', exen: 'It\'s time to take a bath.' },
+      { q: 'トイレ', kana: 'トイレ', en: 'toilet / bathroom', ex: 'トイレはどこですか。', exen: 'Where is the bathroom?' },
+      { q: 'ベッド', kana: 'ベッド', en: 'bed', ex: 'もうベッドにはいる じかんです。', exen: 'It\'s time to get in bed already.' },
+      { q: 'そうじ', kana: 'そうじ', en: 'cleaning / sweep', ex: 'へやのそうじをして。', exen: 'Clean your room.' },
+      { q: 'せんたく', kana: 'せんたく', en: 'laundry', ex: 'せんたくをたたんで。', exen: 'Fold the laundry.' },
+      { q: 'ごみ', kana: 'ごみ', en: 'trash / garbage', ex: 'ごみをだしてください。', exen: 'Please take out the trash.' },
+      { q: 'かぎ', kana: 'かぎ', en: 'key / lock', ex: 'かぎはどこ？', exen: 'Where are the keys?' },
+      { q: 'てれび', kana: 'てれび', en: 'television', ex: 'てれびをけしなさい。', exen: 'Turn off the TV.' },
+      { q: 'パソコン', kana: 'パソコン', en: 'computer', ex: 'パソコンをかたづけてください。', exen: 'Please put away the computer.' },
     ]
   },
   {
-    id: 'household',
-    label: '家 Household',
+    id: 'tabemono',
+    jp: 'たべもの',
+    en: 'Food',
+    tag: 'household',
+    tip: 'ごはんのときに つかってみよう！— Try using these at meal time!',
     cards: [
-      { type:'word', jp:'ごはん',   romaji:'gohan',   en:'rice / meal' },
-      { type:'word', jp:'みず',     romaji:'mizu',    en:'water' },
-      { type:'word', jp:'テーブル', romaji:'tēburu',  en:'table' },
-      { type:'word', jp:'テレビ',   romaji:'terebi',  en:'TV' },
-      { type:'word', jp:'まど',     romaji:'mado',    en:'window' },
-      { type:'word', jp:'かばん',   romaji:'kaban',   en:'bag' },
-      { type:'word', jp:'ほん',     romaji:'hon',     en:'book' },
-      { type:'word', jp:'でんき',   romaji:'denki',   en:'light / electricity' },
-      { type:'word', jp:'くつ',     romaji:'kutsu',   en:'shoes' },
-      { type:'word', jp:'ドア',     romaji:'doa',     en:'door' },
-      { type:'word', jp:'いす',     romaji:'isu',     en:'chair' },
-      { type:'word', jp:'つくえ',   romaji:'tsukue',  en:'desk' },
+      { q: 'ごはん', kana: 'ごはん', en: 'rice / meal', ex: 'ごはんができたよ！', exen: 'Dinner\'s ready!' },
+      { q: 'みず', kana: 'みず', en: 'water', ex: 'みずをのんでください。', exen: 'Please drink some water.' },
+      { q: 'おちゃ', kana: 'おちゃ', en: 'green tea', ex: 'おちゃをのみますか。', exen: 'Will you drink some tea?' },
+      { q: 'たまご', kana: 'たまご', en: 'egg', ex: 'たまごはすきですか。', exen: 'Do you like eggs?' },
+      { q: 'さかな', kana: 'さかな', en: 'fish', ex: 'きょうのごはんはさかなだよ。', exen: 'Today\'s meal is fish.' },
+      { q: 'にく', kana: 'にく', en: 'meat', ex: 'にくがすきです。', exen: 'I like meat.' },
+      { q: 'やさい', kana: 'やさい', en: 'vegetables', ex: 'やさいをたべなさい。', exen: 'Eat your vegetables.' },
+      { q: 'くだもの', kana: 'くだもの', en: 'fruit', ex: 'くだものがすきです。', exen: 'I like fruit.' },
+      { q: 'パン', kana: 'パン', en: 'bread', ex: 'あさはパンをたべました。', exen: 'I ate bread for breakfast.' },
+      { q: 'ジュース', kana: 'ジュース', en: 'juice', ex: 'ジュースをもう一ぱいください。', exen: 'One more glass of juice please.' },
+      { q: 'からい', kana: 'からい', en: 'spicy', ex: 'からいですか？', exen: 'Is it spicy?' },
+      { q: 'あまい', kana: 'あまい', en: 'sweet', ex: 'このケーキはあまい。', exen: 'This cake is sweet.' },
+      { q: 'おいしい', kana: 'おいしい', en: 'delicious', ex: 'おいしい！', exen: 'Delicious!' },
+      { q: 'まずい', kana: 'まずい', en: 'bad taste', ex: 'ちょっとまずかった…', exen: 'It tasted a bit bad...' },
+      { q: 'おなか', kana: 'おなか', en: 'stomach', ex: 'おなかがすいた！', exen: 'I\'m hungry!' },
+    ]
+  },
+  {
+    id: 'dousa',
+    jp: 'どうさ',
+    en: 'Daily Actions',
+    tag: 'household',
+    tip: 'まいにちのせいかつの どうし！— Verbs for your daily routine!',
+    cards: [
+      { q: 'おきる', kana: 'おきる', en: 'to wake up', ex: 'おきてください！', exen: 'Please wake up!' },
+      { q: 'ねる', kana: 'ねる', en: 'to sleep / go to bed', ex: 'もうねる じかんです。', exen: 'It\'s time to sleep.' },
+      { q: 'たべる', kana: 'たべる', en: 'to eat', ex: 'はやくたべて。', exen: 'Eat quickly.' },
+      { q: 'のむ', kana: 'のむ', en: 'to drink', ex: 'みずをのみなさい。', exen: 'Drink your water.' },
+      { q: 'みる', kana: 'みる', en: 'to look / watch', ex: 'てれびをみる。', exen: 'Watch TV.' },
+      { q: 'きく', kana: 'きく', en: 'to listen', ex: 'おかあさんのいうことをきいて。', exen: 'Listen to what mom says.' },
+      { q: 'いく', kana: 'いく', en: 'to go', ex: 'がっこうにいく じかんです。', exen: 'Time to go to school.' },
+      { q: 'くる', kana: 'くる', en: 'to come', ex: 'はやくきて！', exen: 'Come quickly!' },
+      { q: 'かえる', kana: 'かえる', en: 'to return / go home', ex: 'なんじにかえる？', exen: 'What time will you come home?' },
+      { q: 'する', kana: 'する', en: 'to do', ex: 'しゅくだいをする。', exen: 'Do your homework.' },
+      { q: 'あらう', kana: 'あらう', en: 'to wash', ex: 'てをあらいなさい。', exen: 'Wash your hands.' },
+      { q: 'きる', kana: 'きる', en: 'to wear / put on', ex: 'ふくをきてください。', exen: 'Please put on your clothes.' },
+      { q: 'でかける', kana: 'でかける', en: 'to go out', ex: 'でかける まえにてをあらって。', exen: 'Wash your hands before going out.' },
+      { q: 'てつだう', kana: 'てつだう', en: 'to help', ex: 'てつだってくれる？', exen: 'Can you help me?' },
+      { q: 'わかる', kana: 'わかる', en: 'to understand', ex: 'わかりますか？', exen: 'Do you understand?' },
+    ]
+  },
+  {
+    id: 'gakkou',
+    jp: 'がっこう',
+    en: 'School',
+    tag: 'curriculum',
+    cards: [
+      { q: 'せんせい', kana: 'せんせい', en: 'teacher', ex: 'せんせいはやさしいです。', exen: 'The teacher is kind.' },
+      { q: 'がくせい', kana: 'がくせい', en: 'student', ex: 'わたしはがくせいです。', exen: 'I am a student.' },
+      { q: 'きょうしつ', kana: 'きょうしつ', en: 'classroom', ex: 'きょうしつにはいってください。', exen: 'Please enter the classroom.' },
+      { q: 'しゅくだい', kana: 'しゅくだい', en: 'homework', ex: 'しゅくだいはおわった？', exen: 'Is your homework done?' },
+      { q: 'テスト', kana: 'テスト', en: 'test / exam', ex: 'あしたテストがあります。', exen: 'There is a test tomorrow.' },
+      { q: 'えんぴつ', kana: 'えんぴつ', en: 'pencil', ex: 'えんぴつをかしてください。', exen: 'Please lend me a pencil.' },
+      { q: 'ノート', kana: 'ノート', en: 'notebook', ex: 'ノートをとって。', exen: 'Take notes.' },
+      { q: 'じしょ', kana: 'じしょ', en: 'dictionary', ex: 'じしょをひいてみて。', exen: 'Try looking it up in the dictionary.' },
+      { q: 'きゅうしょく', kana: 'きゅうしょく', en: 'school lunch', ex: 'きゅうしょくはおいしかった。', exen: 'School lunch was delicious.' },
+      { q: 'やすみ', kana: 'やすみ', en: 'break / day off', ex: 'つぎのやすみはいつ？', exen: 'When is the next holiday?' },
+      { q: 'べんきょう', kana: 'べんきょう', en: 'studying', ex: 'にほんごのべんきょうをする。', exen: 'Study Japanese.' },
+      { q: 'ともだち', kana: 'ともだち', en: 'friend', ex: 'ともだちとあそぶ。', exen: 'Play with friends.' },
+      { q: 'たいいく', kana: 'たいいく', en: 'P.E. / gym', ex: 'たいいくがすきです。', exen: 'I like P.E.' },
+      { q: 'きゅうけい', kana: 'きゅうけい', en: 'rest / recess', ex: 'きゅうけいじかんです。', exen: 'It\'s recess time.' },
+      { q: 'こうこう', kana: 'こうこう', en: 'high school', ex: 'こうこうせいです。', exen: 'I am a high school student.' },
+    ]
+  },
+  {
+    id: 'jikan',
+    jp: 'じかん',
+    en: 'Time & Numbers',
+    tag: 'curriculum',
+    cards: [
+      { q: 'いちじ', kana: 'いちじ', en: '1 o\'clock', ex: 'いちじにあいましょう。', exen: 'Let\'s meet at 1 o\'clock.' },
+      { q: 'なんじ', kana: 'なんじ', en: 'what time?', ex: 'いまなんじですか。', exen: 'What time is it now?' },
+      { q: 'あさ', kana: 'あさ', en: 'morning', ex: 'あさごはんはたべた？', exen: 'Did you eat breakfast?' },
+      { q: 'ひる', kana: 'ひる', en: 'noon / daytime', ex: 'ひるごはんのじかんです。', exen: 'It\'s lunchtime.' },
+      { q: 'よる', kana: 'よる', en: 'night / evening', ex: 'よるはさむい。', exen: 'It\'s cold at night.' },
+      { q: 'きょう', kana: 'きょう', en: 'today', ex: 'きょうはなんようびですか。', exen: 'What day is today?' },
+      { q: 'あした', kana: 'あした', en: 'tomorrow', ex: 'あしたなにをする？', exen: 'What will you do tomorrow?' },
+      { q: 'きのう', kana: 'きのう', en: 'yesterday', ex: 'きのうなにをたべた？', exen: 'What did you eat yesterday?' },
+      { q: 'まいにち', kana: 'まいにち', en: 'every day', ex: 'まいにちにほんごをれんしゅうします。', exen: 'I practice Japanese every day.' },
+      { q: 'もうすぐ', kana: 'もうすぐ', en: 'soon / almost', ex: 'もうすぐごはんができる。', exen: 'Dinner is almost ready.' },
+      { q: 'いつ', kana: 'いつ', en: 'when?', ex: 'いつかえる？', exen: 'When will you come home?' },
+      { q: 'はやく', kana: 'はやく', en: 'quickly / early', ex: 'はやくして！', exen: 'Hurry up!' },
+      { q: 'ゆっくり', kana: 'ゆっくり', en: 'slowly / at ease', ex: 'ゆっくりたべてください。', exen: 'Please eat slowly.' },
+      { q: 'まだ', kana: 'まだ', en: 'still / not yet', ex: 'まだじゅうびんじゃない。', exen: 'Not ready yet.' },
+      { q: 'もう', kana: 'もう', en: 'already / anymore', ex: 'もうごじです！', exen: 'It\'s already 5 o\'clock!' },
+    ]
+  },
+  {
+    id: 'kimochi',
+    jp: 'きもち',
+    en: 'Feelings',
+    tag: 'curriculum',
+    cards: [
+      { q: 'うれしい', kana: 'うれしい', en: 'happy / glad', ex: 'うれしいです！', exen: 'I\'m happy!' },
+      { q: 'かなしい', kana: 'かなしい', en: 'sad', ex: 'かなしいです。', exen: 'I\'m sad.' },
+      { q: 'たのしい', kana: 'たのしい', en: 'fun / enjoyable', ex: 'にほんごはたのしい！', exen: 'Japanese is fun!' },
+      { q: 'つかれた', kana: 'つかれた', en: 'tired', ex: 'つかれた…', exen: 'I\'m tired...' },
+      { q: 'ねむい', kana: 'ねむい', en: 'sleepy', ex: 'ねむいよ〜', exen: 'I\'m sleepy~' },
+      { q: 'いたい', kana: 'いたい', en: 'painful / it hurts', ex: 'あたまがいたい。', exen: 'I have a headache.' },
+      { q: 'こわい', kana: 'こわい', en: 'scary / afraid', ex: 'ちょっとこわかった。', exen: 'It was a little scary.' },
+      { q: 'はずかしい', kana: 'はずかしい', en: 'embarrassed', ex: 'はずかしい！', exen: 'How embarrassing!' },
+      { q: 'おこる', kana: 'おこる', en: 'to get angry', ex: 'おかあさんがおこっている。', exen: 'Mom is angry.' },
+      { q: 'わらう', kana: 'わらう', en: 'to laugh', ex: 'みんながわらった。', exen: 'Everyone laughed.' },
+      { q: 'なく', kana: 'なく', en: 'to cry', ex: 'なかないで。', exen: 'Don\'t cry.' },
+      { q: 'だいじょうぶ', kana: 'だいじょうぶ', en: 'okay / alright', ex: 'だいじょうぶ？', exen: 'Are you okay?' },
+      { q: 'すき', kana: 'すき', en: 'like / fond of', ex: 'にほんごがすきです。', exen: 'I like Japanese.' },
+      { q: 'きらい', kana: 'きらい', en: 'dislike', ex: 'やさいがきらい。', exen: 'I dislike vegetables.' },
+      { q: 'びっくり', kana: 'びっくり', en: 'surprised', ex: 'びっくりした！', exen: 'I was surprised!' },
+    ]
+  },
+  {
+    id: 'unit6food',
+    jp: 'しょくひん',
+    en: 'Unit 6 Food',
+    tag: 'japanese2',
+    tip: '日本語Ⅱ Unit 6 — たべものの ことばを おぼえよう！Learn food vocabulary for the final!',
+    cards: [
+      { q: 'うなぎ', kana: 'うなぎ', en: 'eel', ex: 'うなぎを食べてみたいです。', exen: 'I want to try eating eel.' },
+      { q: 'かに', kana: 'かに', en: 'crab', ex: 'かにを食べるのはむずかしいです。', exen: 'It\'s hard to eat crab.' },
+      { q: 'いぬ', kana: 'いぬ', en: 'dog', ex: 'いぬが食べそうです。', exen: 'The dog seems like it\'s about to eat.' },
+      { q: 'すし', kana: 'すし', en: 'sushi', ex: 'すしを食べたことがありますか。', exen: 'Have you ever eaten sushi?' },
+      { q: 'ラーメン', kana: 'ラーメン', en: 'ramen', ex: 'ラーメンを食べたいです。', exen: 'I want to eat ramen.' },
+      { q: 'てんぷら', kana: 'てんぷら', en: 'tempura', ex: 'てんぷらはおいしいです。', exen: 'Tempura is delicious.' },
+      { q: 'さしみ', kana: 'さしみ', en: 'sashimi', ex: 'さしみが好きですか。', exen: 'Do you like sashimi?' },
+      { q: 'みそしる', kana: 'みそしる', en: 'miso soup', ex: 'みそしるを飲みます。', exen: 'I drink miso soup.' },
+      { q: 'おにぎり', kana: 'おにぎり', en: 'rice ball', ex: 'おにぎりを作りました。', exen: 'I made rice balls.' },
+      { q: 'やきとり', kana: 'やきとり', en: 'grilled chicken skewer', ex: 'やきとりはからいです。', exen: 'The yakitori is spicy.' },
+      { q: 'たこやき', kana: 'たこやき', en: 'takoyaki (octopus balls)', ex: 'たこやきを食べたことがある。', exen: 'I have eaten takoyaki.' },
+      { q: 'から揚げ', kana: 'からあげ', en: 'Japanese fried chicken', ex: 'から揚げが大好きです。', exen: 'I love karaage.' },
+      { q: 'なっとう', kana: 'なっとう', en: 'fermented soybeans (natto)', ex: 'なっとうを食べるのはむずかしい。', exen: 'Eating natto is difficult.' },
+      { q: 'おかし', kana: 'おかし', en: 'snacks / sweets', ex: 'おかしをたべすぎました。', exen: 'I ate too many snacks.' },
+      { q: 'りょうり', kana: 'りょうり', en: 'cooking / cuisine / dish', ex: 'りょうりをするのが好きです。', exen: 'I like cooking.' },
+    ]
+  },
+  {
+    id: 'unit6grammar',
+    jp: 'ぶんぽう',
+    en: 'Unit 6 Grammar',
+    tag: 'japanese2',
+    tip: '日本語Ⅱ Unit 6 文法 — どうしの かたちを おぼえよう！Verb forms for the final exam!',
+    cards: [
+      { q: '食べ', kana: 'たべ (verb stem)', en: 'stem form — used before そうです', ex: '食べそうです。', exen: 'It looks like (someone) is about to eat.' },
+      { q: '食べて', kana: 'たべて (て-form)', en: 'te-form — used with みたい・みる', ex: '食べてみたいです。', exen: 'I want to try eating.' },
+      { q: '食べる', kana: 'たべる (short form)', en: 'dictionary form — used before のは', ex: '食べるのはたのしい。', exen: 'Eating is fun.' },
+      { q: '〜そうです', kana: '〜そうです', en: 'seems like / looks like (about to)', ex: 'いぬが食べそうです。', exen: 'The dog looks like it\'s about to eat.' },
+      { q: '〜てみたい', kana: '〜てみたい', en: 'want to try doing ~', ex: 'うなぎを食べてみたいです。', exen: 'I want to try eating eel.' },
+      { q: '〜のは〜です', kana: '〜のは〜です', en: 'nominalization: doing ~ is ~', ex: 'かにを食べるのはむずかしいです。', exen: 'Eating crab is difficult.' },
+      { q: '食べます', kana: 'たべます (masu form)', en: 'polite present / future', ex: 'すしを食べます。', exen: 'I eat / will eat sushi.' },
+      { q: '食べません', kana: 'たべません', en: 'polite negative present', ex: 'なっとうを食べません。', exen: 'I don\'t eat natto.' },
+      { q: '食べました', kana: 'たべました', en: 'polite past', ex: 'てんぷらを食べました。', exen: 'I ate tempura.' },
+      { q: '食べませんでした', kana: 'たべませんでした', en: 'polite negative past', ex: 'あさごはんを食べませんでした。', exen: 'I didn\'t eat breakfast.' },
+      { q: '食べたことがある', kana: 'たべたことがある', en: 'have had the experience of eating', ex: 'さしみを食べたことがありますか。', exen: 'Have you ever eaten sashimi?' },
+      { q: '食べすぎる', kana: 'たべすぎる', en: 'to eat too much (〜すぎる)', ex: '食べすぎました。', exen: 'I ate too much.' },
+      { q: '〜ながら', kana: '〜ながら', en: 'while doing ~ (simultaneous action)', ex: 'テレビを見ながら食べます。', exen: 'I eat while watching TV.' },
+      { q: '〜てください', kana: '〜てください', en: 'please do ~ (polite request)', ex: '食べてください。', exen: 'Please eat.' },
+      { q: '〜てもいいですか', kana: '〜てもいいですか', en: 'may I do ~? (asking permission)', ex: '食べてもいいですか。', exen: 'May I eat?' },
     ]
   },
   {
     id: 'colors',
-    label: '色 Colors',
+    jp: 'いろ',
+    en: 'Colors',
+    tag: 'curriculum',
     cards: [
-      { type:'word', jp:'あか',     romaji:'aka',       en:'red' },
-      { type:'word', jp:'あお',     romaji:'ao',        en:'blue' },
-      { type:'word', jp:'きいろ',   romaji:'kiiro',     en:'yellow' },
-      { type:'word', jp:'みどり',   romaji:'midori',    en:'green' },
-      { type:'word', jp:'しろ',     romaji:'shiro',     en:'white' },
-      { type:'word', jp:'くろ',     romaji:'kuro',      en:'black' },
-      { type:'word', jp:'ちゃいろ', romaji:'chairо',    en:'brown' },
-      { type:'word', jp:'オレンジ', romaji:'orenji',    en:'orange' },
-      { type:'word', jp:'むらさき', romaji:'murasaki',  en:'purple' },
-      { type:'word', jp:'ピンク',   romaji:'pinku',     en:'pink' },
-      { type:'word', jp:'グレー',   romaji:'gurē',      en:'grey' },
-      { type:'word', jp:'はだいろ', romaji:'hadairo',   en:'skin color / beige' },
+      { q: 'あか', kana: 'あか', en: 'red', ex: 'あかいシャツがすきです。', exen: 'I like red shirts.' },
+      { q: 'あお', kana: 'あお', en: 'blue', ex: 'あおいズボンをはいています。', exen: 'I am wearing blue pants.' },
+      { q: 'きいろ', kana: 'きいろ', en: 'yellow', ex: 'きいろいぼうしをかぶっています。', exen: 'I am wearing a yellow hat.' },
+      { q: 'くろ', kana: 'くろ', en: 'black', ex: 'くろいシャツをきています。', exen: 'I am wearing a black shirt.' },
+      { q: 'しろ', kana: 'しろ', en: 'white', ex: 'しろいシャツをきています。', exen: 'I am wearing a white shirt.' },
+      { q: 'オレンジ', kana: 'オレンジ', en: 'orange', ex: 'オレンジいろのくつがほしい。', exen: 'I want orange shoes.' },
+      { q: 'むらさき', kana: 'むらさき', en: 'purple', ex: 'むらさきのぼうしをかぶっています。', exen: 'You are wearing a purple hat.' },
+      { q: 'ちゃいろ', kana: 'ちゃいろ', en: 'brown', ex: 'ちゃいろいくつをはきたいです。', exen: 'I want to wear brown shoes.' },
+      { q: 'みどり', kana: 'みどり', en: 'green', ex: 'みどりのジャケットをきています。', exen: 'I am wearing a green jacket.' },
+      { q: 'ピンク', kana: 'ピンク', en: 'pink', ex: 'ピンクのシャツがかわいい。', exen: 'The pink shirt is cute.' },
+      { q: 'グレー', kana: 'グレー', en: 'gray', ex: 'グレーのズボンをはいています。', exen: 'I am wearing gray pants.' },
+      { q: 'きみどり', kana: 'きみどり', en: 'light green / yellow-green', ex: 'きみどりのシャツがすきです。', exen: 'I like light green shirts.' },
     ]
   },
   {
-    id: 'clothing',
-    label: '服 Clothing',
+    id: 'fuku',
+    jp: 'ふく',
+    en: 'Clothing',
+    tag: 'curriculum',
+    tip: 'きる (上半身) vs はく (下半身) — きる for top-half clothes, はく for bottom-half and shoes!',
     cards: [
-      { type:'word', jp:'シャツ',     romaji:'shatsu',    en:'shirt' },
-      { type:'word', jp:'Tシャツ',    romaji:'tī-shatsu', en:'T-shirt' },
-      { type:'word', jp:'ズボン',     romaji:'zubon',     en:'pants / trousers' },
-      { type:'word', jp:'スカート',   romaji:'sukāto',    en:'skirt' },
-      { type:'word', jp:'くつした',   romaji:'kutsushita',en:'socks' },
-      { type:'word', jp:'うわぎ',     romaji:'uwagi',     en:'jacket / top layer' },
-      { type:'word', jp:'コート',     romaji:'kōto',      en:'coat' },
-      { type:'word', jp:'セーター',   romaji:'sētā',      en:'sweater' },
-      { type:'word', jp:'ぼうし',     romaji:'bōshi',     en:'hat / cap' },
-      { type:'word', jp:'めがね',     romaji:'megane',    en:'glasses' },
-      { type:'word', jp:'ネクタイ',   romaji:'nekutai',   en:'necktie' },
-      { type:'word', jp:'ドレス',     romaji:'doresu',    en:'dress' },
-      { type:'word', jp:'したぎ',     romaji:'shitagi',   en:'underwear' },
-      { type:'word', jp:'てぶくろ',   romaji:'tebukuro',  en:'gloves' },
-      { type:'word', jp:'マフラー',   romaji:'mafurā',    en:'scarf' },
+      { q: 'くつ', kana: 'くつ', en: 'shoes', ex: 'くつをはきましょうか。', exen: 'Shall we put on our shoes?' },
+      { q: 'くつした', kana: 'くつした', en: 'socks', ex: 'くつしたをはいてください。', exen: 'Please put on your socks.' },
+      { q: 'ズボン', kana: 'ズボン', en: 'pants / trousers', ex: 'あおいズボンをはいています。', exen: 'I am wearing blue pants.' },
+      { q: 'シャツ', kana: 'シャツ', en: 'shirt', ex: 'しろいシャツをきています。', exen: 'I am wearing a white shirt.' },
+      { q: 'ぼうし', kana: 'ぼうし', en: 'hat / cap', ex: 'きいろいぼうしをかぶっています。', exen: 'He is wearing a yellow hat.' },
+      { q: 'めがね', kana: 'めがね', en: 'glasses', ex: 'はれているので、サングラスをかけました。', exen: "It's sunny, so I put on sunglasses." },
+      { q: 'ジャケット', kana: 'ジャケット', en: 'jacket', ex: 'ジャケットをきてください。', exen: 'Please put on your jacket.' },
+      { q: 'とけい', kana: 'とけい', en: 'watch / clock', ex: 'とけいをつけています。', exen: 'I am wearing a watch.' },
+      { q: 'ゆびわ', kana: 'ゆびわ', en: 'ring', ex: 'ゆびわをはめています。', exen: 'I am wearing a ring.' },
+      { q: 'サングラス', kana: 'サングラス', en: 'sunglasses', ex: 'はれているのでサングラスをかけました。', exen: "It's sunny so I put on sunglasses." },
+      { q: 'きる', kana: 'きる', en: 'to wear (top: shirt, jacket)', ex: 'シャツをきています。', exen: 'I am wearing a shirt.' },
+      { q: 'はく', kana: 'はく', en: 'to wear (bottom: pants, shoes, socks)', ex: 'くつをはいています。', exen: 'I am wearing shoes.' },
+      { q: 'かぶる', kana: 'かぶる', en: 'to wear (on head: hat, helmet)', ex: 'ぼうしをかぶっています。', exen: 'I am wearing a hat.' },
+      { q: 'かける', kana: 'かける', en: 'to wear (glasses, sunglasses)', ex: 'めがねをかけています。', exen: 'I am wearing glasses.' },
+      { q: 'はめる', kana: 'はめる', en: 'to put on (ring, gloves)', ex: 'ゆびわをはめています。', exen: 'I am wearing a ring.' },
     ]
   },
   {
-    id: 'food',
-    label: '食べ物 Food',
+    id: 'sentences',
+    jp: 'ぶんれい',
+    en: 'Sentences',
+    tag: 'curriculum',
+    tip: 'もとのぶんを おぼえよう！— Memorize these key sentences for speaking practice with mom!',
     cards: [
-      { type:'word', jp:'ごはん',   romaji:'gohan',     en:'rice / cooked rice' },
-      { type:'word', jp:'パン',     romaji:'pan',       en:'bread' },
-      { type:'word', jp:'めん',     romaji:'men',       en:'noodles' },
-      { type:'word', jp:'さかな',   romaji:'sakana',    en:'fish' },
-      { type:'word', jp:'にく',     romaji:'niku',      en:'meat' },
-      { type:'word', jp:'とりにく', romaji:'toriniku',  en:'chicken' },
-      { type:'word', jp:'やさい',   romaji:'yasai',     en:'vegetables' },
-      { type:'word', jp:'くだもの', romaji:'kudamono',  en:'fruit' },
-      { type:'word', jp:'たまご',   romaji:'tamago',    en:'egg' },
-      { type:'word', jp:'みそしる', romaji:'misoshiru', en:'miso soup' },
-      { type:'word', jp:'すし',     romaji:'sushi',     en:'sushi' },
-      { type:'word', jp:'ラーメン', romaji:'rāmen',     en:'ramen' },
-      { type:'word', jp:'うどん',   romaji:'udon',      en:'udon noodles' },
-      { type:'word', jp:'おにぎり', romaji:'onigiri',   en:'rice ball' },
-      { type:'word', jp:'とうふ',   romaji:'tōfu',      en:'tofu' },
-      { type:'word', jp:'ジュース', romaji:'jūsu',      en:'juice' },
-      { type:'word', jp:'ぎゅうにゅう', romaji:'gyūnyū', en:'milk' },
-      { type:'word', jp:'おちゃ',   romaji:'ocha',      en:'green tea' },
-      { type:'word', jp:'コーヒー', romaji:'kōhī',      en:'coffee' },
-      { type:'word', jp:'アイスクリーム', romaji:'aisu kurīmu', en:'ice cream' },
+      { q: 'あおいズボンをはいています。', kana: 'あおい ズボンを はいて います。', en: 'I am wearing blue pants.', ex: '〜をはいています = wearing (bottom/shoes)', exen: 'te-form of はく + います' },
+      { q: 'しろいシャツをきています。', kana: 'しろい シャツを きて います。', en: 'I am wearing a white shirt.', ex: '〜をきています = wearing (top)', exen: 'te-form of きる + います' },
+      { q: 'ちゃいろいくつをはきたいです。', kana: 'ちゃいろい くつを はきたいです。', en: 'I want to wear brown shoes.', ex: 'はく + たいです = want to wear (bottom)', exen: 'stem + たいです = want to do' },
+      { q: 'くつをはきましょうか。', kana: 'くつを はきましょうか。', en: 'Shall we put on our shoes?', ex: 'はく → はきましょうか = Shall we wear (bottom)?', exen: 'masu-stem + ましょうか = Shall we?' },
+      { q: 'むらさきのぼうしをかぶっています。', kana: 'むらさきの ぼうしを かぶっています。', en: 'You are wearing a purple hat.', ex: 'かぶる → かぶっています', exen: 'te-form of かぶる + います (head-wear verb)' },
+      { q: 'はれているので、サングラスをかけました。', kana: 'はれているので、サングラスをかけました。', en: "It's sunny, so I put on sunglasses.", ex: '〜ので = because / since (reason clause)', exen: 'はれている (sunny) + ので (because) + result' },
+      { q: 'あたらしいあかいシャツがいいですね。', kana: 'あたらしい あかい シャツが いいですね。', en: 'I like your new, red shirt.', ex: 'い-adjective + い-adjective + noun (stacked adjectives)', exen: 'あたらしい + あかい + シャツ' },
+      { q: 'ホセはくろいシャツをきて、きいろいぼうしをかぶっています。', kana: 'ホセは くろい シャツを きて、きいろい ぼうしを かぶっています。', en: 'Jose is wearing a black shirt and a yellow hat.', ex: 'きて (te-form links two actions) + かぶっています', exen: 'Use て-form to connect wearing multiple items' },
     ]
   },
-  {
-    id: 'mixed',
-    label: '全部 All',
-    cards: [] // populated below
-  }
 ];
 
-// Populate mixed deck from all other decks
-decks[decks.length - 1].cards = decks.slice(0, -1).flatMap(d => d.cards);
+// ===== STATE =====
+const XP_PER_LEVEL = 100;
+let state = JSON.parse(localStorage.getItem('tangoState') || 'null') || {
+  xp: 0, level: 1,
+  streak: 0, bestStreak: 0,
+  progress: {}, // deckId -> set of known indices
+  bestBlitz: {}, // deckId -> best score
+};
+// Ensure progress is sets (JSON doesn't serialize Sets)
+Object.keys(state.progress).forEach(k => {
+  state.progress[k] = new Set(state.progress[k]);
+});
 
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
-let currentDeckId = 'verbs';
-let direction = 'jp-en'; // 'jp-en' | 'en-jp'
-let queue = [];
-let idx = 0;
-let tapState = 0; // 0=front, 1=translation, 2=conjugations
+let currentDeck = 0;
+let currentMode = 'study';
 
-function currentDeck() { return decks.find(d => d.id === currentDeckId); }
-function currentCard() { return queue[idx]; }
+// Study mode state
+let studyQueue = [];
+let studyIndex = 0;
+let cardFace = 0;
 
-// ─────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────
-function init() {
-  buildDeckTabs();
-  loadDeck(currentDeckId);
-}
+// Blitz mode state
+let blitzActive = false;
+let blitzTimer = null;
+let blitzSeconds = 60;
+let blitzScore = 0;
+let blitzStreak = 0;
+let blitzCorrect = 0;
+let blitzTotal = 0;
+let blitzQueue = [];
+let blitzQueueIdx = 0;
+let blitzGhostScore = 0;
+let blitzGhostMode = false;
+let blitzCurrentChoices = [];
+let blitzAnswerLocked = false;
 
-function buildDeckTabs() {
-  const tabs = document.getElementById('deckTabs');
-  tabs.innerHTML = '';
-  decks.forEach(d => {
-    const btn = document.createElement('button');
-    btn.className = 'deck-tab' + (d.id === currentDeckId ? ' active' : '');
-    btn.textContent = d.label;
-    btn.onclick = () => loadDeck(d.id);
-    tabs.appendChild(btn);
+function saveState() {
+  const toSave = { ...state };
+  toSave.progress = {};
+  Object.keys(state.progress).forEach(k => {
+    toSave.progress[k] = [...state.progress[k]];
   });
+  localStorage.setItem('tangoState', JSON.stringify(toSave));
 }
 
-function loadDeck(id) {
-  currentDeckId = id;
-  queue = [...currentDeck().cards];
-  idx = 0;
-  tapState = 0;
-  buildDeckTabs();
-  document.getElementById('deckLabel').textContent = currentDeck().label;
-  updateProgress();
-  renderCard();
+// ===== DECK TABS =====
+function renderTabs() {
+  const container = document.getElementById('deck-tabs');
+  container.innerHTML = DECKS.map((d, i) => {
+    const prog = state.progress[d.id] ? state.progress[d.id].size : 0;
+    const total = d.cards.length;
+    const pct = Math.round(prog / total * 100);
+    const mastered = prog === total;
+    return `<button class="deck-tab${i === currentDeck ? ' active' : ''}${mastered ? ' mastered' : ''}${d.tag === 'japanese2' ? ' japanese2' : ''}" onclick="switchDeck(${i})">
+      <span class="tab-jp">${d.jp}</span>
+      <span class="tab-en">${d.en}</span>
+      <div class="tab-bar"><div class="tab-bar-fill" style="width:${pct}%"></div></div>
+      <span class="tab-prog">${prog}/${total}</span>
+    </button>`;
+  }).join('');
 }
 
-// ─────────────────────────────────────────────
-// CARD RENDER
-// ─────────────────────────────────────────────
-function renderCard() {
-  const c = currentCard();
-  if (!c) { renderDone(); return; }
+function switchDeck(i) {
+  currentDeck = i;
+  renderTabs();
+  if (currentMode === 'study') renderStudy();
+  else renderBlitzStart();
+}
 
-  // Rebuild card element if renderDone wiped it
-  let card = document.getElementById('mainCard');
-  if (!card) {
-    document.getElementById('cardStack').innerHTML = '<div class="card" id="mainCard" onclick="tapCard()"></div>';
-    card = document.getElementById('mainCard');
+// ===== HUD =====
+function updateHUD() {
+  document.getElementById('hud-xp').textContent = state.xp + ' XP';
+  document.getElementById('level-badge').textContent = 'LV' + state.level;
+  const pct = ((state.xp % XP_PER_LEVEL) / XP_PER_LEVEL * 100).toFixed(1);
+  document.getElementById('xp-bar').style.width = pct + '%';
+  const el = document.getElementById('streak-display');
+  el.textContent = '🔥' + state.streak;
+  el.className = 'streak-display' + (state.streak >= 3 ? ' hot' : '');
+}
+
+function addXP(amount) {
+  state.xp += amount;
+  const newLevel = Math.floor(state.xp / XP_PER_LEVEL) + 1;
+  if (newLevel > state.level) {
+    state.level = newLevel;
+    showToast('レベルアップ！LV' + state.level + ' 🎉');
   }
+  updateHUD();
+  saveState();
+  showXPPopup('+' + amount + ' XP');
+}
 
-  card.className = 'card';
-  if (tapState >= 1) card.classList.add('reveal-1');
-  if (tapState >= 2) card.classList.add('reveal-2');
+function showXPPopup(text) {
+  const el = document.createElement('div');
+  el.className = 'xp-popup';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+}
 
-  const isJpEn = direction === 'jp-en';
-  const frontJp  = isJpEn ? c.jp : null;
-  const frontEn  = isJpEn ? null : c.en;
-  const frontRom = isJpEn ? c.romaji : null;
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
 
-  let html = `
-    <div class="card-num">${idx + 1}</div>
-    <div class="card-type-badge ${c.type}">${c.type === 'verb' ? (c.group || '動詞 verb') : '単語 word'}</div>
-  `;
-
-  // FRONT FACE
-  if (isJpEn) {
-    html += `<div class="layer-jp">${c.jp}</div>`;
-    html += `<div class="layer-romaji">${c.romaji}</div>`;
+// ===== MODE SWITCHER =====
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-study').className = 'mode-btn' + (mode === 'study' ? ' active' : '');
+  document.getElementById('btn-blitz').className = 'mode-btn' + (mode === 'blitz' ? ' active' : '');
+  if (mode === 'study') {
+    document.getElementById('study-area').classList.remove('hidden');
+    document.getElementById('blitz-area').classList.add('hidden');
+    renderStudy();
   } else {
-    html += `<div class="layer-en-front">${c.en}</div>`;
+    document.getElementById('study-area').classList.add('hidden');
+    document.getElementById('blitz-area').classList.remove('hidden');
+    renderBlitzStart();
   }
-
-  // TAP HINT
-  if (tapState === 0) {
-    html += `<div class="tap-hint">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
-      tap to reveal
-    </div>`;
-  }
-
-  // LAYER 1: Translation
-  if (tapState >= 1) {
-    html += `<div class="layer-en reveal-anim">`;
-    if (isJpEn) {
-      html += `<div class="layer-en-label">English</div>
-               <div class="layer-en-text">${c.en}</div>`;
-    } else {
-      html += `<div class="layer-en-label">Japanese</div>
-               <div class="layer-jp" style="font-size:2.5rem;margin:0;width:100%">${c.jp}</div>
-               <div class="layer-romaji">${c.romaji}</div>`;
-    }
-    html += `</div>`;
-
-    // Show tap hint for verbs only if tap 2 not yet shown
-    if (c.type === 'verb' && tapState === 1) {
-      html += `<div class="tap-hint" style="margin-top:12px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
-        tap for conjugations
-      </div>`;
-    }
-  }
-
-  // LAYER 2: Conjugations (verbs only)
-  if (tapState >= 2 && c.type === 'verb') {
-    html += `<div class="layer-conj reveal-anim">
-      <div class="conj-label">Conjugations</div>
-      <div class="conj-grid">
-        <div class="conj-item">
-          <div class="conj-item-label a">a-form</div>
-          <div class="conj-item-jp">${c.a}</div>
-          <div class="conj-item-suffix">→ ない (negative)</div>
-        </div>
-        <div class="conj-item">
-          <div class="conj-item-label i">i-form</div>
-          <div class="conj-item-jp">${c.i}</div>
-          <div class="conj-item-suffix">→ ます (polite)</div>
-        </div>
-        <div class="conj-item">
-          <div class="conj-item-label e">e-form</div>
-          <div class="conj-item-jp">${c.e}</div>
-          <div class="conj-item-suffix">→ る (potential)</div>
-        </div>
-        <div class="conj-item">
-          <div class="conj-item-label te">て-form</div>
-          <div class="conj-item-jp">${c.te}</div>
-          <div class="conj-item-suffix">→ ください (request)</div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  card.innerHTML = html;
 }
 
-function renderDone() {
-  const area = document.getElementById('cardArea');
-  document.getElementById('cardStack').innerHTML = `
-    <div class="done-screen slide-up">
-      <div class="done-jp">おつかれさま！</div>
-      <div class="done-en">Well done — deck complete</div>
-      <button class="restart-btn" onclick="restartDeck()">Start Again</button>
+// ===== STUDY MODE =====
+function buildStudyQueue() {
+  const deck = DECKS[currentDeck];
+  const known = state.progress[deck.id] || new Set();
+  // Put unknown cards first, then known cards at the end for review
+  const unknown = deck.cards.map((c,i) => i).filter(i => !known.has(i));
+  const knownArr = [...known];
+  studyQueue = [...unknown, ...knownArr];
+  studyIndex = 0;
+}
+
+function renderStudy() {
+  buildStudyQueue();
+  cardFace = 0;
+  renderStudyCard();
+}
+
+function renderStudyCard() {
+  const deck = DECKS[currentDeck];
+  const area = document.getElementById('study-area');
+  if (studyQueue.length === 0) {
+    area.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text2)">このデッキにカードがありません。</div>';
+    return;
+  }
+
+  const known = state.progress[deck.id] || new Set();
+  const allKnown = known.size === deck.cards.length;
+
+  let tipHtml = '';
+  if (deck.tip) {
+    tipHtml = `<div class="household-tip"><strong>おかあさんと！</strong><br>${deck.tip}</div>`;
+  }
+
+  let completeBanner = '';
+  if (allKnown) {
+    completeBanner = `<div class="deck-complete"><h3>✓ デッキかんりょう！</h3><p>All ${deck.cards.length} words mastered — keep reviewing!</p></div>`;
+  }
+
+  const cardIdx = studyQueue[studyIndex];
+  const card = deck.cards[cardIdx];
+  const isKnown = known.has(cardIdx);
+  const counter = `${studyIndex + 1} / ${studyQueue.length}`;
+  const tagLabel = isKnown ? '✓ known' : 'new';
+
+  let cardContent = '';
+  if (cardFace === 0) {
+    cardContent = `
+      <span class="card-tag">${tagLabel}</span>
+      <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
+      <div class="tap-hint">tap to reveal →</div>
+    `;
+  } else if (cardFace === 1) {
+    cardContent = `
+      <span class="card-tag">${tagLabel}</span>
+      <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
+      <div class="card-kana">${card.kana}</div>
+      <div class="card-en">${card.en}</div>
+      <div class="tap-hint">tap for example →</div>
+    `;
+  } else {
+    cardContent = `
+      <span class="card-tag">${tagLabel}</span>
+      <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
+      <div class="card-en">${card.en}</div>
+      <div class="card-example">${card.ex}<div class="ex-en">${card.exen}</div></div>
+    `;
+  }
+
+  const actionsHtml = cardFace === 2 ? `
+    <div class="study-actions">
+      <button class="study-btn btn-knew" onclick="markKnew()">✓ わかった</button>
+      <button class="study-btn btn-retry" onclick="markRetry()">↩ もういちど</button>
+    </div>
+  ` : '';
+
+  area.innerHTML = `
+    ${tipHtml}
+    ${completeBanner}
+    <div class="card-counter">${counter}</div>
+    <div class="flashcard" onclick="advanceCard()">
+      ${cardContent}
+    </div>
+    ${actionsHtml}
+  `;
+}
+
+function advanceCard() {
+  if (cardFace < 2) { cardFace++; renderStudyCard(); }
+}
+
+function markKnew() {
+  const deck = DECKS[currentDeck];
+  if (!state.progress[deck.id]) state.progress[deck.id] = new Set();
+  const cardIdx = studyQueue[studyIndex];
+  const wasNew = !state.progress[deck.id].has(cardIdx);
+  state.progress[deck.id].add(cardIdx);
+  state.streak++;
+  if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+  saveState();
+  renderTabs();
+  updateHUD();
+  if (wasNew) addXP(10);
+  else addXP(3);
+  nextStudyCard();
+}
+
+function markRetry() {
+  state.streak = 0;
+  updateHUD();
+  saveState();
+  // Move card to end of queue
+  const idx = studyQueue.splice(studyIndex, 1)[0];
+  studyQueue.push(idx);
+  cardFace = 0;
+  renderStudyCard();
+}
+
+function nextStudyCard() {
+  studyIndex++;
+  if (studyIndex >= studyQueue.length) studyIndex = 0;
+  cardFace = 0;
+  renderStudyCard();
+}
+
+// ===== BLITZ MODE =====
+function renderBlitzStart() {
+  const deck = DECKS[currentDeck];
+  const best = state.bestBlitz[deck.id] || 0;
+  const ghostHtml = best > 0 ? `
+    <div class="ghost-banner">
+      <span class="ghost-icon">👻</span>
+      <span>ゴーストモード available — beat your best: <strong>${best} pts</strong></span>
+    </div>
+  ` : '';
+
+  document.getElementById('blitz-area').innerHTML = `
+    <div class="start-screen">
+      <h2>⚡ ブリッツモード</h2>
+      <p>60秒で できるだけ たくさんこたえよう！<br>Streak multipliers: 🔥×2 at 3, 🔥×3 at 5!</p>
+      ${ghostHtml}
+      <button class="start-btn" onclick="startBlitz(false)">スタート！</button>
+      ${best > 0 ? `<button class="start-btn ghost" onclick="startBlitz(true)">👻 ゴーストモード (best: ${best})</button>` : ''}
     </div>
   `;
 }
 
-// ─────────────────────────────────────────────
-// INTERACTIONS
-// ─────────────────────────────────────────────
-function tapCard() {
-  const c = currentCard();
-  if (!c) return;
-
-  const maxTaps = c.type === 'verb' ? 2 : 1;
-  if (tapState < maxTaps) {
-    tapState++;
-    renderCard();
-  } else {
-    nextCard();
-  }
+function buildBlitzQueue() {
+  const deck = DECKS[currentDeck];
+  // Shuffle all cards
+  blitzQueue = deck.cards.map((c, i) => i).sort(() => Math.random() - 0.5);
+  blitzQueueIdx = 0;
 }
 
-function nextCard() {
-  if (idx < queue.length - 1) {
-    idx++;
-    tapState = 0;
-    renderCard();
-    updateProgress();
-  } else {
-    renderDone();
-  }
+function startBlitz(ghostMode) {
+  blitzActive = true;
+  blitzSeconds = 60;
+  blitzScore = 0;
+  blitzStreak = 0;
+  blitzCorrect = 0;
+  blitzTotal = 0;
+  blitzGhostMode = ghostMode;
+  blitzGhostScore = state.bestBlitz[DECKS[currentDeck].id] || 0;
+  buildBlitzQueue();
+  renderBlitzRound();
+  blitzTimer = setInterval(blitzTick, 1000);
 }
 
-function prevCard() {
-  if (idx > 0) {
-    idx--;
-    tapState = 0;
-    renderCard();
-    updateProgress();
-  }
-}
-
-function resetCard() {
-  tapState = 0;
-  renderCard();
-}
-
-function shuffleDeck() {
-  queue = [...currentDeck().cards].sort(() => Math.random() - 0.5);
-  idx = 0;
-  tapState = 0;
-  updateProgress();
-  renderCard();
-}
-
-function restartDeck() {
-  // renderCard will rebuild mainCard if missing, so just reset state
-  idx = 0;
-  tapState = 0;
-  queue = [...currentDeck().cards];
-  updateProgress();
-  renderCard();
-}
-
-function setDirection(dir) {
-  direction = dir;
-  document.getElementById('btnJpEn').classList.toggle('active', dir === 'jp-en');
-  document.getElementById('btnEnJp').classList.toggle('active', dir === 'en-jp');
-  idx = 0;
-  tapState = 0;
-  queue = [...currentDeck().cards];
-  updateProgress();
-  renderCard();
-}
-
-function updateProgress() {
-  const total = queue.length;
-  const current = Math.min(idx + 1, total);
-  document.getElementById('cardCount').textContent = current;
-  document.getElementById('totalCount').textContent = total;
-  document.getElementById('progressFill').style.width = `${(current / total) * 100}%`;
-}
-
-// keyboard shortcuts
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextCard(); }
-  if (e.key === 'ArrowLeft') prevCard();
-  if (e.key === 'Enter') tapCard();
-  if (e.key === 'r' || e.key === 'R') resetCard();
-});
-
-init();
-
-// ═══════════════════════════════════════════════════════
-// GAME ENGINE — Blitz mode, XP, Streaks, Ghost
-// ═══════════════════════════════════════════════════════
-
-// ── Persistent state (localStorage) ──
-const SAVE_KEY = 'tango_game_v1';
-function loadSave() {
-  try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch(e) { return {}; }
-}
-function writeSave(data) {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
-}
-
-let save = loadSave();
-// save.xp, save.level, save.ghostScores = { deckId: { dir: score } }
-if (!save.xp)          save.xp = 0;
-if (!save.level)       save.level = 1;
-if (!save.ghostScores) save.ghostScores = {};
-
-// XP thresholds per level (cumulative total XP needed)
-const XP_PER_LEVEL = 100;
-function xpForLevel(lvl) { return lvl * XP_PER_LEVEL; }
-function totalXpNeeded() { return xpForLevel(save.level); }
-
-// ── Blitz state ──
-let blitzActive   = false;
-let blitzTimer    = null;
-let blitzSeconds  = 60;
-let blitzScore    = 0;
-let blitzStreak   = 0;
-let blitzBest     = 0;  // ghost score for current deck+dir
-let blitzCards    = []; // shuffled queue for blitz
-let blitzIdx      = 0;
-let blitzAnswered = false; // has current card been answered (tapped to translation)?
-
-// ── Audio (Web Audio API — no external files needed) ──
-let audioCtx = null;
-function getAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-function playTone(freq, type, dur, vol=0.18) {
-  try {
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = type; o.frequency.value = freq;
-    g.gain.setValueAtTime(vol, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-    o.start(); o.stop(ctx.currentTime + dur);
-  } catch(e) {}
-}
-function sfxCorrect() {
-  playTone(520, 'sine', 0.08, 0.15);
-  setTimeout(() => playTone(780, 'sine', 0.12, 0.12), 60);
-}
-function sfxStreak() {
-  [520, 660, 780, 1040].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.1, 0.14), i * 55));
-}
-function sfxLevelUp() {
-  [440, 554, 659, 880].forEach((f, i) => setTimeout(() => playTone(f, 'triangle', 0.18, 0.18), i * 80));
-}
-function sfxWrong() {
-  playTone(220, 'sawtooth', 0.12, 0.1);
-}
-function sfxTick() {
-  playTone(880, 'sine', 0.04, 0.06);
-}
-function sfxTimeUp() {
-  [330, 220, 165].forEach((f, i) => setTimeout(() => playTone(f, 'sawtooth', 0.2, 0.15), i * 100));
-}
-
-// ── Toggle blitz mode ──
-function toggleBlitz() {
-  if (blitzActive) {
-    stopBlitz();
-  } else {
-    startBlitz();
-  }
-}
-
-function startBlitz() {
-  blitzActive   = true;
-  blitzSeconds  = 60;
-  blitzScore    = 0;
-  blitzStreak   = 0;
-  blitzAnswered = false;
-
-  // Load ghost for this deck + direction
-  const ghostKey = currentDeckId + '_' + direction;
-  blitzBest = (save.ghostScores[ghostKey]) || 0;
-
-  // Shuffle a fresh queue
-  blitzCards = [...currentDeck().cards].sort(() => Math.random() - 0.5);
-  blitzIdx   = 0;
-
-  // Update UI
-  document.getElementById('blitzToggle').classList.add('on');
-  document.getElementById('blitzToggle').textContent = '■ Stop';
-  document.getElementById('gameHud').classList.add('visible');
-  document.getElementById('ghostBar').classList.add('visible');
-  updateHud();
-  updateGhostBar();
-
-  // Hide normal nav controls during blitz
-  document.querySelector('.controls').style.opacity = '0.3';
-  document.querySelector('.controls').style.pointerEvents = 'none';
-
-  // Render first blitz card
-  renderBlitzCard();
-
-  // Start countdown
-  blitzTimer = setInterval(tickTimer, 1000);
-}
-
-function stopBlitz() {
-  clearInterval(blitzTimer);
-  blitzTimer  = null;
-  blitzActive = false;
-
-  document.getElementById('blitzToggle').classList.remove('on');
-  document.getElementById('blitzToggle').textContent = '⚡ Blitz';
-  document.getElementById('gameHud').classList.remove('visible');
-  document.getElementById('ghostBar').classList.remove('visible');
-
-  document.querySelector('.controls').style.opacity = '';
-  document.querySelector('.controls').style.pointerEvents = '';
-
-  // Return to normal study mode
-  loadDeck(currentDeckId);
-}
-
-function tickTimer() {
+function blitzTick() {
   blitzSeconds--;
-  if (blitzSeconds <= 5) sfxTick();
-
-  const timerEl = document.getElementById('hudTimer');
-  timerEl.textContent = blitzSeconds;
-  timerEl.className = 'hud-timer' + (blitzSeconds <= 10 ? ' danger' : '');
-
   if (blitzSeconds <= 0) {
     clearInterval(blitzTimer);
-    blitzTimer = null;
-    endBlitz();
+    blitzActive = false;
+    showBlitzResults();
+    return;
+  }
+  // Update timer display without full re-render
+  const timerEl = document.getElementById('blitz-timer');
+  if (timerEl) {
+    timerEl.textContent = blitzSeconds;
+    timerEl.className = 'blitz-timer-ring' + (blitzSeconds <= 10 ? ' danger' : blitzSeconds <= 20 ? ' warning' : '');
   }
 }
 
-function endBlitz() {
-  sfxTimeUp();
+function getMultiplier() {
+  if (blitzStreak >= 5) return 3;
+  if (blitzStreak >= 3) return 2;
+  return 1;
+}
 
-  // Save ghost score if new best
-  const ghostKey = currentDeckId + '_' + direction;
-  const isNewBest = blitzScore > blitzBest;
-  if (isNewBest) {
-    save.ghostScores[ghostKey] = blitzScore;
-    writeSave(save);
+function renderBlitzRound() {
+  if (!blitzActive) return;
+  const deck = DECKS[currentDeck];
+  if (blitzQueueIdx >= blitzQueue.length) {
+    buildBlitzQueue();
   }
+  const cardIdx = blitzQueue[blitzQueueIdx];
+  const card = deck.cards[cardIdx];
+  blitzAnswerLocked = false;
 
-  // Show results screen
-  const stack = document.getElementById('cardStack');
-  stack.innerHTML = `
-    <div class="blitz-results slide-up">
-      <div class="blitz-results-title">時間切れ！ Time's Up!</div>
-      <div class="blitz-new-best">${isNewBest ? '🏆 New Personal Best!' : (blitzBest > 0 ? '👻 Best: ' + blitzBest : '')}</div>
-      <div class="blitz-results-grid">
-        <div class="blitz-stat highlight">
-          <span class="blitz-stat-num">${blitzScore}</span>
-          <span class="blitz-stat-label">Score</span>
-        </div>
-        <div class="blitz-stat">
-          <span class="blitz-stat-num">${blitzStreak}</span>
-          <span class="blitz-stat-label">Best Streak</span>
-        </div>
-        <div class="blitz-stat ghost-stat">
-          <span class="blitz-stat-num">${Math.max(blitzBest, blitzScore)}</span>
-          <span class="blitz-stat-label">Personal Best</span>
-        </div>
-        <div class="blitz-stat">
-          <span class="blitz-stat-num">LV ${save.level}</span>
-          <span class="blitz-stat-label">Level</span>
-        </div>
-      </div>
-      <button class="blitz-play-again" onclick="replayBlitz()">⚡ Play Again</button>
-      <button class="blitz-study-btn" onclick="exitBlitz()">Study Mode</button>
+  // Build choices: correct + 3 wrong
+  const allIndices = deck.cards.map((_,i) => i).filter(i => i !== cardIdx);
+  const wrongs = allIndices.sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = [cardIdx, ...wrongs].sort(() => Math.random() - 0.5);
+  blitzCurrentChoices = choices;
+
+  const mult = getMultiplier();
+  const multBadge = mult > 1 ? `<span class="multiplier-badge${mult === 3 ? ' x3' : ''}">×${mult}</span>` : '';
+
+  const ghostLine = blitzGhostMode ? `
+    <div class="ghost-banner">
+      <span class="ghost-icon">👻</span>
+      <span>Ghost: ${blitzGhostScore} pts | You: ${blitzScore} pts</span>
+    </div>
+  ` : '';
+
+  const mult_note = mult > 1 ? `<div style="text-align:center;font-size:12px;color:var(--accent);font-family:var(--font-mono);margin-bottom:8px;">🔥 Streak ×${mult}!</div>` : '';
+
+  document.getElementById('blitz-area').innerHTML = `
+    <div id="blitz-timer" class="blitz-timer-ring${blitzSeconds <= 10 ? ' danger' : blitzSeconds <= 20 ? ' warning' : ''}">${blitzSeconds}</div>
+    <div class="blitz-score">
+      <div class="pts">${blitzScore}</div>
+      <div>pts${multBadge}</div>
+    </div>
+    ${ghostLine}
+    ${mult_note}
+    <div class="blitz-card">
+      <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
+    </div>
+    <div class="blitz-choices">
+      ${choices.map((ci, i) => `
+        <button class="choice-btn" id="choice-${i}" onclick="blitzAnswer(${i}, ${ci === cardIdx})">${deck.cards[ci].en}</button>
+      `).join('')}
     </div>
   `;
-
-  document.getElementById('gameHud').classList.remove('visible');
-  document.getElementById('ghostBar').classList.remove('visible');
-  document.getElementById('blitzToggle').classList.remove('on');
-  document.getElementById('blitzToggle').textContent = '⚡ Blitz';
-  document.querySelector('.controls').style.opacity = '';
-  document.querySelector('.controls').style.pointerEvents = '';
-  blitzActive = false;
 }
 
-function replayBlitz() {
-  const stack = document.getElementById('cardStack');
-  stack.innerHTML = '<div class="card" id="mainCard" onclick="tapCard()"></div>';
-  startBlitz();
-}
+function blitzAnswer(btnIdx, correct) {
+  if (blitzAnswerLocked) return;
+  blitzAnswerLocked = true;
+  blitzTotal++;
 
-function exitBlitz() {
-  const stack = document.getElementById('cardStack');
-  stack.innerHTML = '<div class="card" id="mainCard" onclick="tapCard()"></div>';
-  loadDeck(currentDeckId);
-}
-
-// ── Blitz card rendering ──
-function renderBlitzCard() {
-  let card = document.getElementById('mainCard');
-  if (!card) {
-    document.getElementById('cardStack').innerHTML = '<div class="card" id="mainCard" onclick="tapCard()"></div>';
-    card = document.getElementById('mainCard');
-  }
-  card.className = 'card';
-
-  const c = blitzCards[blitzIdx % blitzCards.length];
-  const isJpEn = direction === 'jp-en';
-  blitzAnswered = false;
-
-  let html = `<div class="card-type-badge ${c.type}">${c.type === 'verb' ? '動詞 verb' : '単語 word'}</div>`;
-
-  if (isJpEn) {
-    html += `<div class="layer-jp">${c.jp}</div>`;
-    html += `<div class="layer-romaji">${c.romaji}</div>`;
-  } else {
-    html += `<div class="layer-en-front">${c.en}</div>`;
-  }
-
-  html += `<div class="tap-hint">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/>
-    </svg>
-    tap — knew it &nbsp;|&nbsp; skip →
-  </div>`;
-
-  card.innerHTML = html;
-}
-
-function blitzTap() {
-  if (!blitzActive) return;
-  const c = blitzCards[blitzIdx % blitzCards.length];
-  const isJpEn = direction === 'jp-en';
-
-  if (!blitzAnswered) {
-    // First tap: reveal answer
-    blitzAnswered = true;
-    const card = document.getElementById('mainCard');
-    card.classList.add('reveal-1');
-
-    let extra = `<div class="layer-en reveal-anim">`;
-    if (isJpEn) {
-      extra += `<div class="layer-en-label">English</div><div class="layer-en-text">${c.en}</div>`;
-    } else {
-      extra += `<div class="layer-en-label">Japanese</div>
-                <div class="layer-jp" style="font-size:2.5rem;margin:0;width:100%">${c.jp}</div>
-                <div class="layer-romaji">${c.romaji}</div>`;
-    }
-    extra += `</div>`;
-    extra += `<div class="tap-hint" style="margin-top:12px;gap:12px;">
-      <span onclick="blitzAnswer(true)" style="cursor:pointer;color:var(--accent4);font-weight:700;">✓ Knew it</span>
-      &nbsp;·&nbsp;
-      <span onclick="blitzAnswer(false)" style="cursor:pointer;color:var(--accent3);">✗ Missed it</span>
-    </div>`;
-
-    card.innerHTML += extra;
-  } else {
-    // Second tap = "knew it"
-    blitzAnswer(true);
-  }
-}
-
-function blitzAnswer(correct) {
-  if (!blitzActive) return;
-  const card = document.getElementById('mainCard');
-
+  const btn = document.getElementById('choice-' + btnIdx);
   if (correct) {
+    btn.className = 'choice-btn correct';
     blitzStreak++;
-    const multiplier = blitzStreak >= 5 ? 3 : blitzStreak >= 3 ? 2 : 1;
-    const points = 10 * multiplier;
-    blitzScore += points;
-
-    card.classList.add('flash-correct');
-    showScorePop('+' + points + (multiplier > 1 ? ' ×' + multiplier + '🔥' : ''), true);
-
-    if (blitzStreak >= 3 && blitzStreak % 3 === 0) sfxStreak();
-    else sfxCorrect();
-
-    // Award XP
-    addXP(multiplier === 3 ? 8 : multiplier === 2 ? 5 : 3);
+    blitzCorrect++;
+    const mult = getMultiplier();
+    blitzScore += 10 * mult;
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+    updateHUD();
+    addXP(5 * mult);
   } else {
+    btn.className = 'choice-btn wrong';
     blitzStreak = 0;
-    card.classList.add('flash-wrong');
-    showScorePop('miss', false);
-    sfxWrong();
+    state.streak = 0;
+    updateHUD();
+    // Show correct answer
+    blitzCurrentChoices.forEach((ci, i) => {
+      if (ci === blitzCurrentChoices.find((c, j) => {
+        const deck = DECKS[currentDeck];
+        return deck.cards[c] && blitzCurrentChoices.indexOf(c) === blitzCurrentChoices.findIndex(x => {
+          return DECKS[currentDeck].cards[x].en === DECKS[currentDeck].cards[blitzQueue[blitzQueueIdx]].en;
+        });
+      })) {
+        const cb = document.getElementById('choice-' + i);
+        if (cb) cb.className = 'choice-btn correct';
+      }
+    });
+    // Find and highlight correct
+    const deck = DECKS[currentDeck];
+    const correctCard = deck.cards[blitzQueue[blitzQueueIdx]];
+    blitzCurrentChoices.forEach((ci, i) => {
+      if (deck.cards[ci].en === correctCard.en) {
+        const cb = document.getElementById('choice-' + i);
+        if (cb) cb.className = 'choice-btn correct';
+      }
+    });
   }
-
-  updateHud();
-  updateGhostBar();
-
-  blitzIdx++;
-  setTimeout(() => renderBlitzCard(), 300);
+  blitzQueueIdx++;
+  setTimeout(() => {
+    if (blitzActive) renderBlitzRound();
+  }, 600);
 }
 
-// ── Score pop animation ──
-function showScorePop(text, good) {
-  const card = document.getElementById('mainCard');
-  if (!card) return;
-  const rect = card.getBoundingClientRect();
-  const pop = document.createElement('div');
-  pop.className = 'score-pop';
-  pop.textContent = text;
-  pop.style.color = good ? '#2a7a4f' : '#cc3322';
-  pop.style.left = (rect.left + rect.width / 2 - 30) + 'px';
-  pop.style.top  = (rect.top + rect.height / 3) + 'px';
-  document.body.appendChild(pop);
-  setTimeout(() => pop.remove(), 900);
+function showBlitzResults() {
+  const deck = DECKS[currentDeck];
+  const prevBest = state.bestBlitz[deck.id] || 0;
+  const isNewPB = blitzScore > prevBest;
+  if (isNewPB) state.bestBlitz[deck.id] = blitzScore;
+  saveState();
+
+  const acc = blitzTotal > 0 ? Math.round(blitzCorrect / blitzTotal * 100) : 0;
+  const pbHtml = isNewPB ? `<div class="pb-badge">🏆 新記録！Personal Best: ${blitzScore} pts</div><br>` : '';
+
+  document.getElementById('blitz-area').innerHTML = `
+    <div class="results-screen">
+      <div class="results-score-big">${blitzScore}</div>
+      <div class="results-label">points — ${deck.jp} (${deck.en})</div>
+      ${pbHtml}
+      <div class="results-stats">
+        <div class="stat-card"><div class="stat-val">${blitzCorrect}</div><div class="stat-lbl">correct</div></div>
+        <div class="stat-card"><div class="stat-val">${acc}%</div><div class="stat-lbl">accuracy</div></div>
+        <div class="stat-card"><div class="stat-val">${prevBest}</div><div class="stat-lbl">best</div></div>
+      </div>
+      <button class="start-btn" onclick="startBlitz(false)">もう一回！</button>
+      ${prevBest > 0 ? `<button class="start-btn ghost" onclick="startBlitz(true)" style="margin-top:10px;">👻 ゴーストモード</button>` : ''}
+    </div>
+  `;
 }
 
-// ── XP system ──
-function addXP(amount) {
-  save.xp += amount;
-  let leveled = false;
-  while (save.xp >= xpForLevel(save.level)) {
-    save.xp -= xpForLevel(save.level);
-    save.level++;
-    leveled = true;
-  }
-  writeSave(save);
-  updateXpBar();
-  if (leveled) showLevelUp();
-}
-
-function updateXpBar() {
-  const needed = xpForLevel(save.level);
-  const pct = Math.min(100, (save.xp / needed) * 100);
-  document.getElementById('hudXpFill').style.width = pct + '%';
-  document.getElementById('hudLevel').textContent = save.level;
-  document.getElementById('hudXpLabel').textContent = save.xp + ' / ' + needed + ' XP';
-}
-
-function showLevelUp() {
-  sfxLevelUp();
-  const banner = document.getElementById('levelupBanner');
-  document.getElementById('levelupText').textContent = 'Level ' + save.level;
-  banner.classList.add('show');
-  setTimeout(() => banner.classList.remove('show'), 2200);
-}
-
-// ── HUD updater ──
-function updateHud() {
-  document.getElementById('hudTimer').textContent  = blitzSeconds;
-  document.getElementById('hudScore').textContent  = blitzScore;
-
-  const streakEl = document.getElementById('hudStreak');
-  if (blitzStreak === 0) {
-    streakEl.textContent = 'no streak';
-    streakEl.className = 'hud-streak cold';
-  } else if (blitzStreak < 3) {
-    streakEl.textContent = blitzStreak + ' streak';
-    streakEl.className = 'hud-streak';
-  } else {
-    streakEl.textContent = blitzStreak + ' streak 🔥';
-    streakEl.className = 'hud-streak';
-  }
-
-  updateXpBar();
-}
-
-function updateGhostBar() {
-  const ghostKey = currentDeckId + '_' + direction;
-  const best = save.ghostScores[ghostKey] || 0;
-  document.getElementById('ghostBest').textContent = best || '—';
-
-  const deltaEl = document.getElementById('ghostDelta');
-  if (best === 0) {
-    deltaEl.textContent = 'no ghost yet';
-    deltaEl.className = '';
-  } else {
-    const diff = blitzScore - best;
-    if (diff > 0) {
-      deltaEl.textContent = '+' + diff + ' ahead 👻';
-      deltaEl.className = 'ghost-ahead';
-    } else if (diff < 0) {
-      deltaEl.textContent = diff + ' behind';
-      deltaEl.className = 'ghost-behind';
-    } else {
-      deltaEl.textContent = 'tied with ghost';
-      deltaEl.className = '';
-    }
-  }
-}
-
-// ── Override tapCard to route to blitz when active ──
-const _origTapCard = tapCard;
-window.tapCard = function() {
-  if (blitzActive) { blitzTap(); return; }
-  _origTapCard();
-};
-
-// ── Keyboard: space/enter in blitz = tap; skip = right arrow ──
-const _origKeydown = null;
-document.addEventListener('keydown', e => {
-  if (!blitzActive) return;
-  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); blitzTap(); }
-  if (e.key === 'ArrowRight') { e.preventDefault(); blitzAnswer(false); }
-  if (e.key === 'y' || e.key === 'Y') blitzAnswer(true);
-  if (e.key === 'n' || e.key === 'N') blitzAnswer(false);
-});
-
+// ===== INIT =====
+updateHUD();
+renderTabs();
+renderStudy();
 </script>
 </body>
 </html>
