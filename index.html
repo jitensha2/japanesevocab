@@ -602,6 +602,38 @@
   .mastery-complete h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
   .mastery-complete p { font-size: 15px; color: var(--text2); margin-bottom: 28px; line-height: 1.7; }
 
+  /* AUDIO TOGGLE */
+  #audio-toggle {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  #audio-toggle:hover { background: var(--bg2); }
+  #audio-toggle.off { opacity: 0.35; }
+
+  /* SPEAK BUTTON on cards */
+  .speak-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.15s;
+    color: var(--text2);
+  }
+  .speak-btn:hover { background: var(--bg2); border-color: var(--accent2); }
+  .speak-btn.speaking { border-color: var(--accent2); color: var(--accent2); animation: pulse 0.8s infinite; }
+
   @media (max-width: 400px) {
     .card-jp { font-size: 42px; }
     .blitz-choices { grid-template-columns: 1fr; }
@@ -619,6 +651,7 @@
     </div>
     <span class="hud-title">たんご れんしゅう</span>
     <div class="hud-right">
+      <button id="audio-toggle" onclick="toggleAudio()" title="Toggle audio">🔊</button>
       <span class="streak-display" id="streak-display">🔥0</span>
     </div>
   </div>
@@ -1022,6 +1055,7 @@ function renderStudyCard() {
     cardContent = `
       <span class="card-tag">${tagLabel}</span>
       <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
+      <button class="speak-btn" id="speak-btn" onclick="event.stopPropagation();speakJapanese('${card.q.replace(/'/g,'')}')">🔊</button>
       <div class="tap-hint">tap to reveal →</div>
     `;
   } else if (cardFace === 1) {
@@ -1030,6 +1064,7 @@ function renderStudyCard() {
       <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
       <div class="card-kana">${card.kana}</div>
       <div class="card-en">${card.en}</div>
+      <button class="speak-btn" id="speak-btn" onclick="event.stopPropagation();speakJapanese('${card.q.replace(/'/g,'')}')">🔊</button>
       <div class="tap-hint">tap for example →</div>
     `;
   } else {
@@ -1038,6 +1073,7 @@ function renderStudyCard() {
       <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
       <div class="card-en">${card.en}</div>
       <div class="card-example">${card.ex}<div class="ex-en">${card.exen}</div></div>
+      <button class="speak-btn" id="speak-btn" onclick="event.stopPropagation();speakJapanese('${card.ex.replace(/'/g,'')}')">🔊</button>
     `;
   }
 
@@ -1057,6 +1093,8 @@ function renderStudyCard() {
     </div>
     ${actionsHtml}
   `;
+  // Auto-speak the Japanese word on face 0
+  if (cardFace === 0) autoSpeak(card.q);
 }
 
 function advanceCard() {
@@ -1198,8 +1236,9 @@ function renderBlitzRound() {
     </div>
     ${ghostLine}
     ${mult_note}
-    <div class="blitz-card">
+    <div class="blitz-card" style="cursor:default;">
       <div class="card-jp${card.q.length > 4 ? ' sm' : ''}">${card.q}</div>
+      <button class="speak-btn" onclick="speakJapanese('${deck.cards[cardIdx].q.replace(/'/g,'')}')">🔊</button>
     </div>
     <div class="blitz-choices">
       ${choices.map((ci, i) => `
@@ -1398,6 +1437,7 @@ function renderMasteryCard(container) {
     `<div class="pip${hits > i ? (hits === 2 ? ' almost' : ' filled') : ''}"></div>`
   ).join('');
 
+  const _masteryCard = masteryQueue[masteryCurrentIdx];
   container.innerHTML = `
     <div class="mastery-progress-wrap">
       <div class="mastery-progress-bar" style="width:${pct}%"></div>
@@ -1410,9 +1450,10 @@ function renderMasteryCard(container) {
     <div class="card-counter">この カード: ${hits}/3 correct</div>
     <div class="pip-row">${pips}</div>
     <div style="margin-top:14px"></div>
-    <div class="blitz-card">
+    <div class="blitz-card" style="cursor:default;">
       <div style="font-size:11px;font-family:var(--font-mono);color:var(--text3);margin-bottom:8px;">${card.kana}</div>
       <div class="card-jp${card.q.length > 5 ? ' sm' : ''}">${card.q}</div>
+      <button class="speak-btn" onclick="speakJapanese('${card.q.replace(/'/g,'')}')">🔊</button>
     </div>
     <div class="blitz-choices" id="mastery-choices">
       ${choices.map((c, i) => `
@@ -1423,6 +1464,7 @@ function renderMasteryCard(container) {
       <button onclick="resetMastery()" style="font-size:11px;font-family:var(--font-mono);color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;">reset progress</button>
     </div>
   `;
+  autoSpeak(_masteryCard.q);
 }
 
 function masteryAnswer(btnIdx, chosenKey, correctKey) {
@@ -1522,8 +1564,81 @@ function resetMastery() {
   renderMasteryGame();
 }
 
+
+// ===== AUDIO ENGINE =====
+let audioOn = localStorage.getItem('audioOn') !== 'false'; // default ON
+let currentUtterance = null;
+
+function updateAudioToggle() {
+  const btn = document.getElementById('audio-toggle');
+  if (!btn) return;
+  btn.textContent = audioOn ? '🔊' : '🔇';
+  btn.className = 'audio-toggle' + (audioOn ? '' : ' off');
+  // keep the id so we can find it
+  btn.id = 'audio-toggle';
+}
+
+function toggleAudio() {
+  audioOn = !audioOn;
+  localStorage.setItem('audioOn', audioOn);
+  updateAudioToggle();
+  if (!audioOn && window.speechSynthesis) window.speechSynthesis.cancel();
+  showToast(audioOn ? '🔊 音声オン' : '🔇 音声オフ');
+}
+
+function getJapaneseVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  // Prefer a Japanese voice — look for ja-JP or Japanese in name
+  return voices.find(v => v.lang === 'ja-JP') ||
+         voices.find(v => v.lang && v.lang.startsWith('ja')) ||
+         voices.find(v => v.name && v.name.toLowerCase().includes('japanese')) ||
+         null;
+}
+
+function speakJapanese(text) {
+  if (!audioOn) return;
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const btn = document.getElementById('speak-btn');
+  if (btn) btn.classList.add('speaking');
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ja-JP';
+  utter.rate = 0.85;
+  utter.pitch = 1.0;
+
+  const voice = getJapaneseVoice();
+  if (voice) utter.voice = voice;
+
+  utter.onend = () => {
+    const b = document.getElementById('speak-btn');
+    if (b) b.classList.remove('speaking');
+  };
+  utter.onerror = () => {
+    const b = document.getElementById('speak-btn');
+    if (b) b.classList.remove('speaking');
+  };
+
+  currentUtterance = utter;
+  window.speechSynthesis.speak(utter);
+}
+
+// Auto-speak when a new study card appears (face 0 only)
+function autoSpeak(text) {
+  if (!audioOn) return;
+  // Small delay so card renders first
+  setTimeout(() => speakJapanese(text), 300);
+}
+
+// Voices load async on some browsers — wait for them
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => { /* voices now available */ };
+}
+
 // ===== INIT =====
 updateHUD();
+updateAudioToggle();
 renderTabs();
 renderStudy();
 </script>
