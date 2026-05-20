@@ -137,9 +137,7 @@
   }
   .deck-tab.active .tab-jp { color: var(--accent); }
   .deck-tab.mastered .tab-prog { color: var(--accent3); }
-  .deck-tab.japanese2 .tab-en { color: #7c3aed; font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .deck-tab.japanese2 .tab-bar-fill { background: #7c3aed; }
-  .deck-tab.japanese2.active .tab-jp { color: #7c3aed; }
+
 
   /* MODE SWITCHER */
   #mode-bar {
@@ -525,16 +523,22 @@
   }
   .household-tip strong { font-weight: 700; }
 
-  /* SPECIAL MEGA TABS */
-  .deck-tab.vocab-all .tab-jp { color: #0369a1; }
-  .deck-tab.vocab-all.active .tab-jp { color: #0369a1; }
-  .deck-tab.vocab-all .tab-bar-fill { background: #0369a1; }
-  .deck-tab.grammar-all .tab-jp { color: #7c3aed; }
-  .deck-tab.grammar-all.active .tab-jp { color: #7c3aed; }
-  .deck-tab.grammar-all .tab-bar-fill { background: #7c3aed; }
-  .deck-tab.everything .tab-jp { color: #b45309; }
-  .deck-tab.everything.active .tab-jp { color: #b45309; }
-  .deck-tab.everything .tab-bar-fill { background: #b45309; }
+  /* DECK TAB COLORS */
+  .deck-tab.verbs .tab-jp { color: #0369a1; }
+  .deck-tab.verbs.active .tab-jp { color: #0369a1; }
+  .deck-tab.verbs .tab-bar-fill { background: #0369a1; }
+  .deck-tab.grammar .tab-jp { color: #7c3aed; }
+  .deck-tab.grammar.active .tab-jp { color: #7c3aed; }
+  .deck-tab.grammar .tab-bar-fill { background: #7c3aed; }
+  .deck-tab.eating .tab-jp { color: #b45309; }
+  .deck-tab.eating.active .tab-jp { color: #b45309; }
+  .deck-tab.eating .tab-bar-fill { background: #b45309; }
+  .deck-tab.wearing .tab-jp { color: #0f766e; }
+  .deck-tab.wearing.active .tab-jp { color: #0f766e; }
+  .deck-tab.wearing .tab-bar-fill { background: #0f766e; }
+  .deck-tab.everything .tab-jp { color: #b91c1c; }
+  .deck-tab.everything.active .tab-jp { color: #b91c1c; }
+  .deck-tab.everything .tab-bar-fill { background: #b91c1c; }
   .deck-tab.everything .tab-en { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; }
 
   /* MASTERY GAME */
@@ -648,199 +652,119 @@
 // ===== DATA =====
 const DECKS = [
   {
-    id: 'ie',
-    jp: 'いえ',
-    en: 'Home',
-    tag: 'household',
-    tip: 'おかあさんと いえで れんしゅうしよう！— Practice these with mom around the house!',
-    cards: [
-      { q: 'いす', kana: 'いす', en: 'chair', ex: 'そのいすにすわってください。', exen: 'Please sit in that chair.' },
-      { q: 'つくえ', kana: 'つくえ', en: 'desk / table', ex: 'つくえのうえをかたづけて。', exen: 'Clean up your desk.' },
-      { q: 'まど', kana: 'まど', en: 'window', ex: 'まどをしめてください。', exen: 'Please close the window.' },
-      { q: 'ドア', kana: 'ドア', en: 'door', ex: 'ドアをあけてもいいですか。', exen: 'May I open the door?' },
-      { q: 'でんき', kana: 'でんき', en: 'light / electricity', ex: 'でんきをけして！', exen: 'Turn off the light!' },
-      { q: 'れいぞうこ', kana: 'れいぞうこ', en: 'refrigerator', ex: 'れいぞうこにジュースがある。', exen: 'There\'s juice in the fridge.' },
-      { q: 'おふろ', kana: 'おふろ', en: 'bath / bathtub', ex: 'おふろにはいる じかんだよ。', exen: 'It\'s time to take a bath.' },
-      { q: 'トイレ', kana: 'トイレ', en: 'toilet / bathroom', ex: 'トイレはどこですか。', exen: 'Where is the bathroom?' },
-      { q: 'ベッド', kana: 'ベッド', en: 'bed', ex: 'もうベッドにはいる じかんです。', exen: 'It\'s time to get in bed already.' },
-      { q: 'そうじ', kana: 'そうじ', en: 'cleaning / sweep', ex: 'へやのそうじをして。', exen: 'Clean your room.' },
-      { q: 'せんたく', kana: 'せんたく', en: 'laundry', ex: 'せんたくをたたんで。', exen: 'Fold the laundry.' },
-      { q: 'ごみ', kana: 'ごみ', en: 'trash / garbage', ex: 'ごみをだしてください。', exen: 'Please take out the trash.' },
-      { q: 'かぎ', kana: 'かぎ', en: 'key / lock', ex: 'かぎはどこ？', exen: 'Where are the keys?' },
-      { q: 'てれび', kana: 'てれび', en: 'television', ex: 'てれびをけしなさい。', exen: 'Turn off the TV.' },
-      { q: 'パソコン', kana: 'パソコン', en: 'computer', ex: 'パソコンをかたづけてください。', exen: 'Please put away the computer.' },
-    ]
-  },
-  {
-    id: 'tabemono',
-    jp: 'たべもの',
-    en: 'Food',
-    tag: 'household',
-    tip: 'ごはんのときに つかってみよう！— Try using these at meal time!',
-    cards: [
-      { q: 'ごはん', kana: 'ごはん', en: 'rice / meal', ex: 'ごはんができたよ！', exen: 'Dinner\'s ready!' },
-      { q: 'みず', kana: 'みず', en: 'water', ex: 'みずをのんでください。', exen: 'Please drink some water.' },
-      { q: 'おちゃ', kana: 'おちゃ', en: 'green tea', ex: 'おちゃをのみますか。', exen: 'Will you drink some tea?' },
-      { q: 'たまご', kana: 'たまご', en: 'egg', ex: 'たまごはすきですか。', exen: 'Do you like eggs?' },
-      { q: 'さかな', kana: 'さかな', en: 'fish', ex: 'きょうのごはんはさかなだよ。', exen: 'Today\'s meal is fish.' },
-      { q: 'にく', kana: 'にく', en: 'meat', ex: 'にくがすきです。', exen: 'I like meat.' },
-      { q: 'やさい', kana: 'やさい', en: 'vegetables', ex: 'やさいをたべなさい。', exen: 'Eat your vegetables.' },
-      { q: 'くだもの', kana: 'くだもの', en: 'fruit', ex: 'くだものがすきです。', exen: 'I like fruit.' },
-      { q: 'パン', kana: 'パン', en: 'bread', ex: 'あさはパンをたべました。', exen: 'I ate bread for breakfast.' },
-      { q: 'ジュース', kana: 'ジュース', en: 'juice', ex: 'ジュースをもう一ぱいください。', exen: 'One more glass of juice please.' },
-      { q: 'からい', kana: 'からい', en: 'spicy', ex: 'からいですか？', exen: 'Is it spicy?' },
-      { q: 'あまい', kana: 'あまい', en: 'sweet', ex: 'このケーキはあまい。', exen: 'This cake is sweet.' },
-      { q: 'おいしい', kana: 'おいしい', en: 'delicious', ex: 'おいしい！', exen: 'Delicious!' },
-      { q: 'まずい', kana: 'まずい', en: 'bad taste', ex: 'ちょっとまずかった…', exen: 'It tasted a bit bad...' },
-      { q: 'おなか', kana: 'おなか', en: 'stomach', ex: 'おなかがすいた！', exen: 'I\'m hungry!' },
-    ]
-  },
-  {
-    id: 'dousa',
-    jp: 'どうさ',
-    en: 'Daily Actions',
-    tag: 'household',
-    tip: 'まいにちのせいかつの どうし！— Verbs for your daily routine!',
+    id: 'verbs',
+    jp: 'どうし',
+    en: 'Verbs',
+    tag: 'verbs',
     cards: [
       { q: 'おきる', kana: 'おきる', en: 'to wake up', ex: 'おきてください！', exen: 'Please wake up!' },
-      { q: 'ねる', kana: 'ねる', en: 'to sleep / go to bed', ex: 'もうねる じかんです。', exen: 'It\'s time to sleep.' },
+      { q: 'ねる', kana: 'ねる', en: 'to sleep / go to bed', ex: 'もうねる じかんです。', exen: "It's time to sleep." },
       { q: 'たべる', kana: 'たべる', en: 'to eat', ex: 'はやくたべて。', exen: 'Eat quickly.' },
       { q: 'のむ', kana: 'のむ', en: 'to drink', ex: 'みずをのみなさい。', exen: 'Drink your water.' },
       { q: 'みる', kana: 'みる', en: 'to look / watch', ex: 'てれびをみる。', exen: 'Watch TV.' },
-      { q: 'きく', kana: 'きく', en: 'to listen', ex: 'おかあさんのいうことをきいて。', exen: 'Listen to what mom says.' },
+      { q: 'きく', kana: 'きく', en: 'to listen / ask', ex: 'おかあさんのいうことをきいて。', exen: 'Listen to what mom says.' },
       { q: 'いく', kana: 'いく', en: 'to go', ex: 'がっこうにいく じかんです。', exen: 'Time to go to school.' },
       { q: 'くる', kana: 'くる', en: 'to come', ex: 'はやくきて！', exen: 'Come quickly!' },
       { q: 'かえる', kana: 'かえる', en: 'to return / go home', ex: 'なんじにかえる？', exen: 'What time will you come home?' },
       { q: 'する', kana: 'する', en: 'to do', ex: 'しゅくだいをする。', exen: 'Do your homework.' },
       { q: 'あらう', kana: 'あらう', en: 'to wash', ex: 'てをあらいなさい。', exen: 'Wash your hands.' },
-      { q: 'きる', kana: 'きる', en: 'to wear / put on', ex: 'ふくをきてください。', exen: 'Please put on your clothes.' },
+      { q: 'きる', kana: 'きる', en: 'to wear (top half)', ex: 'シャツをきています。', exen: 'I am wearing a shirt.' },
+      { q: 'はく', kana: 'はく', en: 'to wear (bottom / shoes)', ex: 'くつをはいています。', exen: 'I am wearing shoes.' },
+      { q: 'かぶる', kana: 'かぶる', en: 'to wear (on head)', ex: 'ぼうしをかぶっています。', exen: 'I am wearing a hat.' },
+      { q: 'かける', kana: 'かける', en: 'to wear (glasses)', ex: 'めがねをかけています。', exen: 'I am wearing glasses.' },
+      { q: 'はめる', kana: 'はめる', en: 'to put on (ring / gloves)', ex: 'ゆびわをはめています。', exen: 'I am wearing a ring.' },
       { q: 'でかける', kana: 'でかける', en: 'to go out', ex: 'でかける まえにてをあらって。', exen: 'Wash your hands before going out.' },
       { q: 'てつだう', kana: 'てつだう', en: 'to help', ex: 'てつだってくれる？', exen: 'Can you help me?' },
       { q: 'わかる', kana: 'わかる', en: 'to understand', ex: 'わかりますか？', exen: 'Do you understand?' },
-    ]
-  },
-  {
-    id: 'gakkou',
-    jp: 'がっこう',
-    en: 'School',
-    tag: 'curriculum',
-    cards: [
-      { q: 'せんせい', kana: 'せんせい', en: 'teacher', ex: 'せんせいはやさしいです。', exen: 'The teacher is kind.' },
-      { q: 'がくせい', kana: 'がくせい', en: 'student', ex: 'わたしはがくせいです。', exen: 'I am a student.' },
-      { q: 'きょうしつ', kana: 'きょうしつ', en: 'classroom', ex: 'きょうしつにはいってください。', exen: 'Please enter the classroom.' },
-      { q: 'しゅくだい', kana: 'しゅくだい', en: 'homework', ex: 'しゅくだいはおわった？', exen: 'Is your homework done?' },
-      { q: 'テスト', kana: 'テスト', en: 'test / exam', ex: 'あしたテストがあります。', exen: 'There is a test tomorrow.' },
-      { q: 'えんぴつ', kana: 'えんぴつ', en: 'pencil', ex: 'えんぴつをかしてください。', exen: 'Please lend me a pencil.' },
-      { q: 'ノート', kana: 'ノート', en: 'notebook', ex: 'ノートをとって。', exen: 'Take notes.' },
-      { q: 'じしょ', kana: 'じしょ', en: 'dictionary', ex: 'じしょをひいてみて。', exen: 'Try looking it up in the dictionary.' },
-      { q: 'きゅうしょく', kana: 'きゅうしょく', en: 'school lunch', ex: 'きゅうしょくはおいしかった。', exen: 'School lunch was delicious.' },
-      { q: 'やすみ', kana: 'やすみ', en: 'break / day off', ex: 'つぎのやすみはいつ？', exen: 'When is the next holiday?' },
-      { q: 'べんきょう', kana: 'べんきょう', en: 'studying', ex: 'にほんごのべんきょうをする。', exen: 'Study Japanese.' },
-      { q: 'ともだち', kana: 'ともだち', en: 'friend', ex: 'ともだちとあそぶ。', exen: 'Play with friends.' },
-      { q: 'たいいく', kana: 'たいいく', en: 'P.E. / gym', ex: 'たいいくがすきです。', exen: 'I like P.E.' },
-      { q: 'きゅうけい', kana: 'きゅうけい', en: 'rest / recess', ex: 'きゅうけいじかんです。', exen: 'It\'s recess time.' },
-      { q: 'こうこう', kana: 'こうこう', en: 'high school', ex: 'こうこうせいです。', exen: 'I am a high school student.' },
-    ]
-  },
-  {
-    id: 'jikan',
-    jp: 'じかん',
-    en: 'Time & Numbers',
-    tag: 'curriculum',
-    cards: [
-      { q: 'いちじ', kana: 'いちじ', en: '1 o\'clock', ex: 'いちじにあいましょう。', exen: 'Let\'s meet at 1 o\'clock.' },
-      { q: 'なんじ', kana: 'なんじ', en: 'what time?', ex: 'いまなんじですか。', exen: 'What time is it now?' },
-      { q: 'あさ', kana: 'あさ', en: 'morning', ex: 'あさごはんはたべた？', exen: 'Did you eat breakfast?' },
-      { q: 'ひる', kana: 'ひる', en: 'noon / daytime', ex: 'ひるごはんのじかんです。', exen: 'It\'s lunchtime.' },
-      { q: 'よる', kana: 'よる', en: 'night / evening', ex: 'よるはさむい。', exen: 'It\'s cold at night.' },
-      { q: 'きょう', kana: 'きょう', en: 'today', ex: 'きょうはなんようびですか。', exen: 'What day is today?' },
-      { q: 'あした', kana: 'あした', en: 'tomorrow', ex: 'あしたなにをする？', exen: 'What will you do tomorrow?' },
-      { q: 'きのう', kana: 'きのう', en: 'yesterday', ex: 'きのうなにをたべた？', exen: 'What did you eat yesterday?' },
-      { q: 'まいにち', kana: 'まいにち', en: 'every day', ex: 'まいにちにほんごをれんしゅうします。', exen: 'I practice Japanese every day.' },
-      { q: 'もうすぐ', kana: 'もうすぐ', en: 'soon / almost', ex: 'もうすぐごはんができる。', exen: 'Dinner is almost ready.' },
-      { q: 'いつ', kana: 'いつ', en: 'when?', ex: 'いつかえる？', exen: 'When will you come home?' },
-      { q: 'はやく', kana: 'はやく', en: 'quickly / early', ex: 'はやくして！', exen: 'Hurry up!' },
-      { q: 'ゆっくり', kana: 'ゆっくり', en: 'slowly / at ease', ex: 'ゆっくりたべてください。', exen: 'Please eat slowly.' },
-      { q: 'まだ', kana: 'まだ', en: 'still / not yet', ex: 'まだじゅうびんじゃない。', exen: 'Not ready yet.' },
-      { q: 'もう', kana: 'もう', en: 'already / anymore', ex: 'もうごじです！', exen: 'It\'s already 5 o\'clock!' },
-    ]
-  },
-  {
-    id: 'kimochi',
-    jp: 'きもち',
-    en: 'Feelings',
-    tag: 'curriculum',
-    cards: [
-      { q: 'うれしい', kana: 'うれしい', en: 'happy / glad', ex: 'うれしいです！', exen: 'I\'m happy!' },
-      { q: 'かなしい', kana: 'かなしい', en: 'sad', ex: 'かなしいです。', exen: 'I\'m sad.' },
-      { q: 'たのしい', kana: 'たのしい', en: 'fun / enjoyable', ex: 'にほんごはたのしい！', exen: 'Japanese is fun!' },
-      { q: 'つかれた', kana: 'つかれた', en: 'tired', ex: 'つかれた…', exen: 'I\'m tired...' },
-      { q: 'ねむい', kana: 'ねむい', en: 'sleepy', ex: 'ねむいよ〜', exen: 'I\'m sleepy~' },
-      { q: 'いたい', kana: 'いたい', en: 'painful / it hurts', ex: 'あたまがいたい。', exen: 'I have a headache.' },
-      { q: 'こわい', kana: 'こわい', en: 'scary / afraid', ex: 'ちょっとこわかった。', exen: 'It was a little scary.' },
-      { q: 'はずかしい', kana: 'はずかしい', en: 'embarrassed', ex: 'はずかしい！', exen: 'How embarrassing!' },
       { q: 'おこる', kana: 'おこる', en: 'to get angry', ex: 'おかあさんがおこっている。', exen: 'Mom is angry.' },
       { q: 'わらう', kana: 'わらう', en: 'to laugh', ex: 'みんながわらった。', exen: 'Everyone laughed.' },
-      { q: 'なく', kana: 'なく', en: 'to cry', ex: 'なかないで。', exen: 'Don\'t cry.' },
-      { q: 'だいじょうぶ', kana: 'だいじょうぶ', en: 'okay / alright', ex: 'だいじょうぶ？', exen: 'Are you okay?' },
-      { q: 'すき', kana: 'すき', en: 'like / fond of', ex: 'にほんごがすきです。', exen: 'I like Japanese.' },
-      { q: 'きらい', kana: 'きらい', en: 'dislike', ex: 'やさいがきらい。', exen: 'I dislike vegetables.' },
-      { q: 'びっくり', kana: 'びっくり', en: 'surprised', ex: 'びっくりした！', exen: 'I was surprised!' },
+      { q: 'なく', kana: 'なく', en: 'to cry', ex: 'なかないで。', exen: "Don't cry." },
+      { q: 'つかう', kana: 'つかう', en: 'to use', ex: 'パソコンをつかいます。', exen: 'I use the computer.' },
+      { q: 'かく', kana: 'かく', en: 'to write', ex: 'かんじをかく。', exen: 'Write kanji.' },
+      { q: 'よむ', kana: 'よむ', en: 'to read', ex: 'ほんをよむ。', exen: 'Read a book.' },
+      { q: 'かう', kana: 'かう', en: 'to buy', ex: 'くつをかいました。', exen: 'I bought shoes.' },
+      { q: 'つくる', kana: 'つくる', en: 'to make', ex: 'すしをつくります。', exen: 'I will make sushi.' },
+      { q: 'おしえる', kana: 'おしえる', en: 'to teach / tell', ex: 'にほんごをおしえます。', exen: 'I teach Japanese.' },
+      { q: 'おぼえる', kana: 'おぼえる', en: 'to memorize / remember', ex: 'たんごをおぼえます。', exen: 'I will memorize vocabulary.' },
+      { q: 'はじめる', kana: 'はじめる', en: 'to begin / start', ex: 'べんきょうをはじめます。', exen: 'I will start studying.' },
     ]
   },
   {
-    id: 'unit6food',
-    jp: 'しょくひん',
-    en: 'Unit 6 Food',
-    tag: 'japanese2',
-    tip: '日本語Ⅱ Unit 6 — たべものの ことばを おぼえよう！Learn food vocabulary for the final!',
-    cards: [
-      { q: 'うなぎ', kana: 'うなぎ', en: 'eel', ex: 'うなぎを食べてみたいです。', exen: 'I want to try eating eel.' },
-      { q: 'かに', kana: 'かに', en: 'crab', ex: 'かにを食べるのはむずかしいです。', exen: 'It\'s hard to eat crab.' },
-      { q: 'いぬ', kana: 'いぬ', en: 'dog', ex: 'いぬが食べそうです。', exen: 'The dog seems like it\'s about to eat.' },
-      { q: 'すし', kana: 'すし', en: 'sushi', ex: 'すしを食べたことがありますか。', exen: 'Have you ever eaten sushi?' },
-      { q: 'ラーメン', kana: 'ラーメン', en: 'ramen', ex: 'ラーメンを食べたいです。', exen: 'I want to eat ramen.' },
-      { q: 'てんぷら', kana: 'てんぷら', en: 'tempura', ex: 'てんぷらはおいしいです。', exen: 'Tempura is delicious.' },
-      { q: 'さしみ', kana: 'さしみ', en: 'sashimi', ex: 'さしみが好きですか。', exen: 'Do you like sashimi?' },
-      { q: 'みそしる', kana: 'みそしる', en: 'miso soup', ex: 'みそしるを飲みます。', exen: 'I drink miso soup.' },
-      { q: 'おにぎり', kana: 'おにぎり', en: 'rice ball', ex: 'おにぎりを作りました。', exen: 'I made rice balls.' },
-      { q: 'やきとり', kana: 'やきとり', en: 'grilled chicken skewer', ex: 'やきとりはからいです。', exen: 'The yakitori is spicy.' },
-      { q: 'たこやき', kana: 'たこやき', en: 'takoyaki (octopus balls)', ex: 'たこやきを食べたことがある。', exen: 'I have eaten takoyaki.' },
-      { q: 'から揚げ', kana: 'からあげ', en: 'Japanese fried chicken', ex: 'から揚げが大好きです。', exen: 'I love karaage.' },
-      { q: 'なっとう', kana: 'なっとう', en: 'fermented soybeans (natto)', ex: 'なっとうを食べるのはむずかしい。', exen: 'Eating natto is difficult.' },
-      { q: 'おかし', kana: 'おかし', en: 'snacks / sweets', ex: 'おかしをたべすぎました。', exen: 'I ate too many snacks.' },
-      { q: 'りょうり', kana: 'りょうり', en: 'cooking / cuisine / dish', ex: 'りょうりをするのが好きです。', exen: 'I like cooking.' },
-    ]
-  },
-  {
-    id: 'unit6grammar',
+    id: 'grammar',
     jp: 'ぶんぽう',
-    en: 'Unit 6 Grammar',
-    tag: 'japanese2',
-    tip: '日本語Ⅱ Unit 6 文法 — どうしの かたちを おぼえよう！Verb forms for the final exam!',
+    en: 'Grammar',
+    tag: 'grammar',
     cards: [
-      { q: '食べ', kana: 'たべ (verb stem)', en: 'stem form — used before そうです', ex: '食べそうです。', exen: 'It looks like (someone) is about to eat.' },
-      { q: '食べて', kana: 'たべて (て-form)', en: 'te-form — used with みたい・みる', ex: '食べてみたいです。', exen: 'I want to try eating.' },
-      { q: '食べる', kana: 'たべる (short form)', en: 'dictionary form — used before のは', ex: '食べるのはたのしい。', exen: 'Eating is fun.' },
-      { q: '〜そうです', kana: '〜そうです', en: 'seems like / looks like (about to)', ex: 'いぬが食べそうです。', exen: 'The dog looks like it\'s about to eat.' },
-      { q: '〜てみたい', kana: '〜てみたい', en: 'want to try doing ~', ex: 'うなぎを食べてみたいです。', exen: 'I want to try eating eel.' },
-      { q: '〜のは〜です', kana: '〜のは〜です', en: 'nominalization: doing ~ is ~', ex: 'かにを食べるのはむずかしいです。', exen: 'Eating crab is difficult.' },
-      { q: '食べます', kana: 'たべます (masu form)', en: 'polite present / future', ex: 'すしを食べます。', exen: 'I eat / will eat sushi.' },
-      { q: '食べません', kana: 'たべません', en: 'polite negative present', ex: 'なっとうを食べません。', exen: 'I don\'t eat natto.' },
-      { q: '食べました', kana: 'たべました', en: 'polite past', ex: 'てんぷらを食べました。', exen: 'I ate tempura.' },
-      { q: '食べませんでした', kana: 'たべませんでした', en: 'polite negative past', ex: 'あさごはんを食べませんでした。', exen: 'I didn\'t eat breakfast.' },
-      { q: '食べたことがある', kana: 'たべたことがある', en: 'have had the experience of eating', ex: 'さしみを食べたことがありますか。', exen: 'Have you ever eaten sashimi?' },
-      { q: '食べすぎる', kana: 'たべすぎる', en: 'to eat too much (〜すぎる)', ex: '食べすぎました。', exen: 'I ate too much.' },
-      { q: '〜ながら', kana: '〜ながら', en: 'while doing ~ (simultaneous action)', ex: 'テレビを見ながら食べます。', exen: 'I eat while watching TV.' },
-      { q: '〜てください', kana: '〜てください', en: 'please do ~ (polite request)', ex: '食べてください。', exen: 'Please eat.' },
-      { q: '〜てもいいですか', kana: '〜てもいいですか', en: 'may I do ~? (asking permission)', ex: '食べてもいいですか。', exen: 'May I eat?' },
+      { q: 'たべる → たべない', kana: 'a-row + ない', en: 'negative: "does not eat"', ex: 'やさいをたべない。', exen: 'I do not eat vegetables.' },
+      { q: 'かく → かかない', kana: 'a-row + ない', en: 'negative: "does not write"', ex: 'かんじをかかない。', exen: 'I do not write kanji.' },
+      { q: 'のむ → のまない', kana: 'a-row + ない', en: 'negative: "does not drink"', ex: 'おちゃをのまない。', exen: 'I do not drink tea.' },
+      { q: 'いく → いかない', kana: 'a-row + ない', en: 'negative: "does not go"', ex: 'がっこうにいかない。', exen: 'I do not go to school.' },
+      { q: 'たべる → たべます', kana: 'i-row + ます', en: 'polite present / future: "will eat"', ex: 'ごはんをたべます。', exen: 'I will eat a meal.' },
+      { q: 'かく → かきます', kana: 'i-row + ます', en: 'polite present: "writes"', ex: 'てがみをかきます。', exen: 'I write a letter.' },
+      { q: 'のむ → のみます', kana: 'i-row + ます', en: 'polite present: "drinks"', ex: 'みずをのみます。', exen: 'I drink water.' },
+      { q: 'いく → いきます', kana: 'i-row + ます', en: 'polite present: "goes"', ex: 'がっこうにいきます。', exen: 'I go to school.' },
+      { q: 'たべる → たべましょう', kana: 'i-row + ましょう', en: 'volitional: "let\'s eat!"', ex: 'いっしょにたべましょう！', exen: "Let's eat together!" },
+      { q: 'いく → いきましょう', kana: 'i-row + ましょう', en: 'volitional: "let\'s go!"', ex: 'いきましょう！', exen: "Let's go!" },
+      { q: 'はく → はきましょうか', kana: 'i-row + ましょうか', en: 'shall we?: "shall we wear?"', ex: 'くつをはきましょうか。', exen: 'Shall we put on our shoes?' },
+      { q: 'たべる → たべられる', kana: 'e-row + る', en: 'potential: "can eat"', ex: 'からいものがたべられる。', exen: 'I can eat spicy food.' },
+      { q: 'かく → かける', kana: 'e-row + る', en: 'potential: "can write"', ex: 'かんじがかける。', exen: 'I can write kanji.' },
+      { q: 'のむ → のめる', kana: 'e-row + る', en: 'potential: "can drink"', ex: 'おさけがのめる。', exen: 'I can drink alcohol.' },
+      { q: 'いく → いける', kana: 'e-row + る', en: 'potential: "can go"', ex: 'がっこうにいける。', exen: 'I can go to school.' },
+      { q: 'たべる → たべるのはむずかしい', kana: 'dict. form + のは + adj', en: 'nominalization: "eating is difficult"', ex: 'かにをたべるのはむずかしい。', exen: 'Eating crab is difficult.' },
+      { q: 'かく → かくのはたのしい', kana: 'dict. form + のは + adj', en: 'nominalization: "writing is fun"', ex: 'かんじをかくのはたのしい。', exen: 'Writing kanji is fun.' },
+      { q: '〜そうです', kana: 'verb stem + そうです', en: 'looks like / seems about to ~', ex: 'いぬが食べそうです。', exen: 'The dog looks like it\'s about to eat.' },
+      { q: '〜てみたい', kana: 'te-form + みたい', en: 'want to try doing ~', ex: 'うなぎをたべてみたいです。', exen: 'I want to try eating eel.' },
+      { q: '〜たことがある', kana: 'ta-form + ことがある', en: 'have had the experience of ~', ex: 'さしみをたべたことがありますか。', exen: 'Have you ever eaten sashimi?' },
+      { q: '〜すぎる', kana: 'verb stem + すぎる', en: 'to do ~ too much', ex: 'たべすぎました。', exen: 'I ate too much.' },
+      { q: '〜ながら', kana: 'verb stem + ながら', en: 'while doing ~', ex: 'テレビをみながらたべます。', exen: 'I eat while watching TV.' },
+      { q: '〜てください', kana: 'te-form + ください', en: 'please do ~', ex: 'たべてください。', exen: 'Please eat.' },
+      { q: '〜てもいいですか', kana: 'te-form + もいいですか', en: 'may I ~?', ex: 'たべてもいいですか。', exen: 'May I eat?' },
+      { q: '〜ので', kana: '〜ので', en: 'because / since (reason)', ex: 'はれているので、サングラスをかけました。', exen: "It's sunny, so I put on sunglasses." },
     ]
   },
   {
-    id: 'colors',
-    jp: 'いろ',
-    en: 'Colors',
-    tag: 'curriculum',
+    id: 'eating',
+    jp: 'たべもの',
+    en: 'Eating',
+    tag: 'eating',
+    cards: [
+      { q: 'ごはん', kana: 'ごはん', en: 'rice / meal', ex: 'ごはんができたよ！', exen: "Dinner's ready!" },
+      { q: 'みず', kana: 'みず', en: 'water', ex: 'みずをのんでください。', exen: 'Please drink some water.' },
+      { q: 'おちゃ', kana: 'おちゃ', en: 'green tea', ex: 'おちゃをのみますか。', exen: 'Will you drink some tea?' },
+      { q: 'たまご', kana: 'たまご', en: 'egg', ex: 'たまごはすきですか。', exen: 'Do you like eggs?' },
+      { q: 'さかな', kana: 'さかな', en: 'fish', ex: 'きょうのごはんはさかなだよ。', exen: "Today's meal is fish." },
+      { q: 'にく', kana: 'にく', en: 'meat', ex: 'にくがすきです。', exen: 'I like meat.' },
+      { q: 'やさい', kana: 'やさい', en: 'vegetables', ex: 'やさいをたべなさい。', exen: 'Eat your vegetables.' },
+      { q: 'くだもの', kana: 'くだもの', en: 'fruit', ex: 'くだものがすきです。', exen: 'I like fruit.' },
+      { q: 'パン', kana: 'パン', en: 'bread', ex: 'あさはパンをたべました。', exen: 'I ate bread for breakfast.' },
+      { q: 'ジュース', kana: 'ジュース', en: 'juice', ex: 'ジュースをもう一ぱいください。', exen: 'One more glass of juice please.' },
+      { q: 'うなぎ', kana: 'うなぎ', en: 'eel', ex: 'うなぎをたべてみたいです。', exen: 'I want to try eating eel.' },
+      { q: 'かに', kana: 'かに', en: 'crab', ex: 'かにをたべるのはむずかしいです。', exen: "It's hard to eat crab." },
+      { q: 'すし', kana: 'すし', en: 'sushi', ex: 'すしをたべたことがありますか。', exen: 'Have you ever eaten sushi?' },
+      { q: 'ラーメン', kana: 'ラーメン', en: 'ramen', ex: 'ラーメンをたべたいです。', exen: 'I want to eat ramen.' },
+      { q: 'てんぷら', kana: 'てんぷら', en: 'tempura', ex: 'てんぷらはおいしいです。', exen: 'Tempura is delicious.' },
+      { q: 'さしみ', kana: 'さしみ', en: 'sashimi', ex: 'さしみがすきですか。', exen: 'Do you like sashimi?' },
+      { q: 'みそしる', kana: 'みそしる', en: 'miso soup', ex: 'みそしるをのみます。', exen: 'I drink miso soup.' },
+      { q: 'おにぎり', kana: 'おにぎり', en: 'rice ball', ex: 'おにぎりをつくりました。', exen: 'I made rice balls.' },
+      { q: 'やきとり', kana: 'やきとり', en: 'grilled chicken skewer', ex: 'やきとりはからいです。', exen: 'The yakitori is spicy.' },
+      { q: 'たこやき', kana: 'たこやき', en: 'takoyaki (octopus balls)', ex: 'たこやきをたべたことがある。', exen: 'I have eaten takoyaki.' },
+      { q: 'から揚げ', kana: 'からあげ', en: 'Japanese fried chicken', ex: 'から揚げが大好きです。', exen: 'I love karaage.' },
+      { q: 'なっとう', kana: 'なっとう', en: 'fermented soybeans (natto)', ex: 'なっとうをたべるのはむずかしい。', exen: 'Eating natto is difficult.' },
+      { q: 'りょうり', kana: 'りょうり', en: 'cooking / cuisine', ex: 'りょうりをするのがすきです。', exen: 'I like cooking.' },
+      { q: 'からい', kana: 'からい', en: 'spicy', ex: 'からいですか？', exen: 'Is it spicy?' },
+      { q: 'あまい', kana: 'あまい', en: 'sweet', ex: 'このケーキはあまい。', exen: 'This cake is sweet.' },
+      { q: 'おいしい', kana: 'おいしい', en: 'delicious', ex: 'おいしい！', exen: 'Delicious!' },
+      { q: 'まずい', kana: 'まずい', en: 'tastes bad', ex: 'ちょっとまずかった…', exen: 'It tasted a bit bad...' },
+      { q: 'おなかがすいた', kana: 'おなかがすいた', en: 'I am hungry', ex: 'おなかがすいた！', exen: "I'm hungry!" },
+      { q: 'おなかがいっぱい', kana: 'おなかがいっぱい', en: 'I am full', ex: 'おなかがいっぱいです。', exen: "I'm full." },
+    ]
+  },
+  {
+    id: 'wearing',
+    jp: 'きる・はく',
+    en: 'Wearing',
+    tag: 'wearing',
+    tip: 'きる (top) • はく (bottom/shoes) • かぶる (head) • かける (glasses) — each item has its own verb!',
     cards: [
       { q: 'あか', kana: 'あか', en: 'red', ex: 'あかいシャツがすきです。', exen: 'I like red shirts.' },
       { q: 'あお', kana: 'あお', en: 'blue', ex: 'あおいズボンをはいています。', exen: 'I am wearing blue pants.' },
@@ -853,57 +777,30 @@ const DECKS = [
       { q: 'みどり', kana: 'みどり', en: 'green', ex: 'みどりのジャケットをきています。', exen: 'I am wearing a green jacket.' },
       { q: 'ピンク', kana: 'ピンク', en: 'pink', ex: 'ピンクのシャツがかわいい。', exen: 'The pink shirt is cute.' },
       { q: 'グレー', kana: 'グレー', en: 'gray', ex: 'グレーのズボンをはいています。', exen: 'I am wearing gray pants.' },
-      { q: 'きみどり', kana: 'きみどり', en: 'light green / yellow-green', ex: 'きみどりのシャツがすきです。', exen: 'I like light green shirts.' },
-    ]
-  },
-  {
-    id: 'fuku',
-    jp: 'ふく',
-    en: 'Clothing',
-    tag: 'curriculum',
-    tip: 'きる (上半身) vs はく (下半身) — きる for top-half clothes, はく for bottom-half and shoes!',
-    cards: [
       { q: 'くつ', kana: 'くつ', en: 'shoes', ex: 'くつをはきましょうか。', exen: 'Shall we put on our shoes?' },
       { q: 'くつした', kana: 'くつした', en: 'socks', ex: 'くつしたをはいてください。', exen: 'Please put on your socks.' },
       { q: 'ズボン', kana: 'ズボン', en: 'pants / trousers', ex: 'あおいズボンをはいています。', exen: 'I am wearing blue pants.' },
       { q: 'シャツ', kana: 'シャツ', en: 'shirt', ex: 'しろいシャツをきています。', exen: 'I am wearing a white shirt.' },
       { q: 'ぼうし', kana: 'ぼうし', en: 'hat / cap', ex: 'きいろいぼうしをかぶっています。', exen: 'He is wearing a yellow hat.' },
-      { q: 'めがね', kana: 'めがね', en: 'glasses', ex: 'はれているので、サングラスをかけました。', exen: "It's sunny, so I put on sunglasses." },
+      { q: 'めがね', kana: 'めがね', en: 'glasses', ex: 'めがねをかけています。', exen: 'I am wearing glasses.' },
       { q: 'ジャケット', kana: 'ジャケット', en: 'jacket', ex: 'ジャケットをきてください。', exen: 'Please put on your jacket.' },
-      { q: 'とけい', kana: 'とけい', en: 'watch / clock', ex: 'とけいをつけています。', exen: 'I am wearing a watch.' },
+      { q: 'とけい', kana: 'とけい', en: 'watch', ex: 'とけいをつけています。', exen: 'I am wearing a watch.' },
       { q: 'ゆびわ', kana: 'ゆびわ', en: 'ring', ex: 'ゆびわをはめています。', exen: 'I am wearing a ring.' },
       { q: 'サングラス', kana: 'サングラス', en: 'sunglasses', ex: 'はれているのでサングラスをかけました。', exen: "It's sunny so I put on sunglasses." },
-      { q: 'きる', kana: 'きる', en: 'to wear (top: shirt, jacket)', ex: 'シャツをきています。', exen: 'I am wearing a shirt.' },
-      { q: 'はく', kana: 'はく', en: 'to wear (bottom: pants, shoes, socks)', ex: 'くつをはいています。', exen: 'I am wearing shoes.' },
-      { q: 'かぶる', kana: 'かぶる', en: 'to wear (on head: hat, helmet)', ex: 'ぼうしをかぶっています。', exen: 'I am wearing a hat.' },
-      { q: 'かける', kana: 'かける', en: 'to wear (glasses, sunglasses)', ex: 'めがねをかけています。', exen: 'I am wearing glasses.' },
-      { q: 'はめる', kana: 'はめる', en: 'to put on (ring, gloves)', ex: 'ゆびわをはめています。', exen: 'I am wearing a ring.' },
-    ]
-  },
-  {
-    id: 'sentences',
-    jp: 'ぶんれい',
-    en: 'Sentences',
-    tag: 'curriculum',
-    tip: 'もとのぶんを おぼえよう！— Memorize these key sentences for speaking practice with mom!',
-    cards: [
-      { q: 'あおいズボンをはいています。', kana: 'あおい ズボンを はいて います。', en: 'I am wearing blue pants.', ex: '〜をはいています = wearing (bottom/shoes)', exen: 'te-form of はく + います' },
-      { q: 'しろいシャツをきています。', kana: 'しろい シャツを きて います。', en: 'I am wearing a white shirt.', ex: '〜をきています = wearing (top)', exen: 'te-form of きる + います' },
-      { q: 'ちゃいろいくつをはきたいです。', kana: 'ちゃいろい くつを はきたいです。', en: 'I want to wear brown shoes.', ex: 'はく + たいです = want to wear (bottom)', exen: 'stem + たいです = want to do' },
-      { q: 'くつをはきましょうか。', kana: 'くつを はきましょうか。', en: 'Shall we put on our shoes?', ex: 'はく → はきましょうか = Shall we wear (bottom)?', exen: 'masu-stem + ましょうか = Shall we?' },
-      { q: 'むらさきのぼうしをかぶっています。', kana: 'むらさきの ぼうしを かぶっています。', en: 'You are wearing a purple hat.', ex: 'かぶる → かぶっています', exen: 'te-form of かぶる + います (head-wear verb)' },
-      { q: 'はれているので、サングラスをかけました。', kana: 'はれているので、サングラスをかけました。', en: "It's sunny, so I put on sunglasses.", ex: '〜ので = because / since (reason clause)', exen: 'はれている (sunny) + ので (because) + result' },
-      { q: 'あたらしいあかいシャツがいいですね。', kana: 'あたらしい あかい シャツが いいですね。', en: 'I like your new, red shirt.', ex: 'い-adjective + い-adjective + noun (stacked adjectives)', exen: 'あたらしい + あかい + シャツ' },
-      { q: 'ホセはくろいシャツをきて、きいろいぼうしをかぶっています。', kana: 'ホセは くろい シャツを きて、きいろい ぼうしを かぶっています。', en: 'Jose is wearing a black shirt and a yellow hat.', ex: 'きて (te-form links two actions) + かぶっています', exen: 'Use て-form to connect wearing multiple items' },
+      { q: 'あおいズボンをはいています。', kana: 'あおい ズボンを はいています。', en: 'I am wearing blue pants.', ex: 'はく → はいています (te-form + います)', exen: 'wearing = te-form + います' },
+      { q: 'しろいシャツをきています。', kana: 'しろい シャツを きています。', en: 'I am wearing a white shirt.', ex: 'きる → きています (te-form + います)', exen: 'wearing = te-form + います' },
+      { q: 'ちゃいろいくつをはきたいです。', kana: 'ちゃいろい くつを はきたいです。', en: 'I want to wear brown shoes.', ex: 'はく → はきたい (i-stem + たい)', exen: 'want to wear = stem + たいです' },
+      { q: 'くつをはきましょうか。', kana: 'くつを はきましょうか。', en: 'Shall we put on our shoes?', ex: 'はく → はきましょうか (i-stem + ましょうか)', exen: 'shall we? = stem + ましょうか' },
+      { q: 'むらさきのぼうしをかぶっています。', kana: 'むらさきの ぼうしを かぶっています。', en: 'You are wearing a purple hat.', ex: 'かぶる → かぶっています (te-form + います)', exen: 'head-wear verb: かぶる' },
+      { q: 'はれているので、サングラスをかけました。', kana: 'はれているので、サングラスをかけました。', en: "It's sunny, so I put on sunglasses.", ex: '〜ので = because / since', exen: 'reason + ので + result' },
+      { q: 'あたらしいあかいシャツがいいですね。', kana: 'あたらしい あかい シャツが いいですね。', en: 'I like your new red shirt!', ex: 'i-adj + i-adj + noun (stacked adjectives)', exen: 'あたらしい + あかい + シャツ' },
+      { q: 'ホセはくろいシャツをきて、きいろいぼうしをかぶっています。', kana: 'ホセは くろい シャツを きて、きいろい ぼうしを かぶっています。', en: 'Jose is wearing a black shirt and a yellow hat.', ex: 'きて = te-form links two wearing actions', exen: 'connect actions with te-form' },
     ]
   },
 ];
 
 // ===== VIRTUAL DECKS (aggregates) =====
-// Grammar deck ids
-const GRAMMAR_IDS = ['unit6grammar'];
-// Vocab deck ids = everything else
-const VOCAB_IDS = ['ie','tabemono','dousa','gakkou','jikan','kimochi','unit6food','colors','fuku','sentences'];
+const ALL_IDS = ['verbs','grammar','eating','wearing'];
 
 function buildVirtualDeck(ids, id, jp, en, tag) {
   const cards = [];
@@ -917,9 +814,7 @@ function buildVirtualDeck(ids, id, jp, en, tag) {
 }
 
 const VIRTUAL_DECKS = [
-  buildVirtualDeck(VOCAB_IDS, 'all-vocab', 'ぜんぶ', 'All Vocab', 'vocab-all'),
-  buildVirtualDeck(GRAMMAR_IDS, 'all-grammar', 'ぶんぽう', 'All Grammar', 'grammar-all'),
-  buildVirtualDeck([...VOCAB_IDS, ...GRAMMAR_IDS], 'everything', 'すべて', 'EVERYTHING', 'everything'),
+  buildVirtualDeck(ALL_IDS, 'everything', 'すべて', 'EVERYTHING', 'everything'),
 ];
 const ALL_DECKS = [...DECKS, ...VIRTUAL_DECKS];
 
@@ -975,15 +870,9 @@ function renderTabs() {
   container.innerHTML = ALL_DECKS.map((d, i) => {
     let prog, total, pct, mastered;
     if (d.virtual && d.id === 'everything') {
-      // everything tab: count mastered cards (hit 3x)
       total = d.cards.length;
       const m = state.mastery || {};
       prog = d.cards.filter(c => (m[c._sourceId + ':' + c._sourceIdx] || 0) >= 3).length;
-      pct = Math.round(prog / total * 100);
-      mastered = prog === total;
-    } else if (d.virtual) {
-      total = d.cards.length;
-      prog = d.cards.filter(c => state.progress[c._sourceId] && state.progress[c._sourceId].has(c._sourceIdx)).length;
       pct = Math.round(prog / total * 100);
       mastered = prog === total;
     } else {
@@ -992,7 +881,7 @@ function renderTabs() {
       pct = Math.round(prog / total * 100);
       mastered = prog === total;
     }
-    const tagClass = d.tag === 'japanese2' ? ' japanese2' : d.tag === 'vocab-all' ? ' vocab-all' : d.tag === 'grammar-all' ? ' grammar-all' : d.tag === 'everything' ? ' everything' : '';
+    const tagClass = d.tag ? ' ' + d.tag : '';
     return `<button class="deck-tab${i === currentDeck ? ' active' : ''}${mastered ? ' mastered' : ''}${tagClass}" onclick="switchDeck(${i})">
       <span class="tab-jp">${d.jp}</span>
       <span class="tab-en">${d.en}</span>
