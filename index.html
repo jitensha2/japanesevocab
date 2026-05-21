@@ -634,6 +634,165 @@
   .speak-btn:hover { background: var(--bg2); border-color: var(--accent2); }
   .speak-btn.speaking { border-color: var(--accent2); color: var(--accent2); animation: pulse 0.8s infinite; }
 
+  /* LISTEN / AUDIO STUDY MODE */
+  #listen-area { padding: 0 20px 100px; }
+
+  .listen-player {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 16px;
+  }
+  .listen-word {
+    font-size: 52px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 8px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .listen-word.sm { font-size: 32px; }
+  .listen-reading {
+    font-size: 16px;
+    color: var(--text2);
+    text-align: center;
+    margin-bottom: 6px;
+    min-height: 24px;
+  }
+  .listen-english {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--accent2);
+    text-align: center;
+    margin-bottom: 12px;
+    min-height: 28px;
+  }
+  .listen-example {
+    font-size: 14px;
+    color: var(--text2);
+    text-align: center;
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 4px;
+    min-height: 44px;
+  }
+  .listen-example .ex-en {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+  .listen-phase {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+    min-height: 16px;
+  }
+  .listen-progress {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .listen-progress-bar-wrap {
+    height: 4px; background: var(--bg3); border-radius: 2px; margin-bottom: 20px;
+  }
+  .listen-progress-bar {
+    height: 100%; border-radius: 2px;
+    background: var(--accent2);
+    transition: width 0.4s ease;
+  }
+  .listen-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .listen-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg2);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .listen-btn:hover { background: var(--bg3); }
+  .listen-btn.primary {
+    width: 64px; height: 64px;
+    background: var(--text);
+    border-color: var(--text);
+    font-size: 24px;
+    color: white;
+  }
+  .listen-btn.primary:hover { background: #333; }
+  .listen-speed {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .speed-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--bg2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .speed-btn.active {
+    background: var(--text);
+    border-color: var(--text);
+    color: white;
+  }
+  .listen-options {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .option-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--bg2);
+    font-family: var(--font-jp);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .option-btn.active {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: white;
+  }
+  .listen-done {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .listen-done .done-icon { font-size: 56px; margin-bottom: 16px; }
+  .listen-done h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .listen-done p { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+
   @media (max-width: 400px) {
     .card-jp { font-size: 42px; }
     .blitz-choices { grid-template-columns: 1fr; }
@@ -671,6 +830,10 @@
         <span class="mode-icon">⚡</span>
         <span>ブリッツ</span>
       </button>
+      <button class="mode-btn" id="btn-listen" onclick="setMode('listen')">
+        <span class="mode-icon">🎧</span>
+        <span>きく</span>
+      </button>
     </div>
 
     <!-- STUDY AREA -->
@@ -678,6 +841,9 @@
 
     <!-- BLITZ AREA -->
     <div id="blitz-area" class="hidden"></div>
+
+    <!-- LISTEN AREA -->
+    <div id="listen-area" class="hidden"></div>
   </div>
 </div>
 
@@ -928,7 +1094,14 @@ function switchDeck(i) {
   currentDeck = i;
   renderTabs();
   const deck = ALL_DECKS[i];
+  // Stop audio when switching decks
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  listenPlaying = false;
+  if (listenTimeout) { clearTimeout(listenTimeout); listenTimeout = null; }
+
   const mArea = document.getElementById('mastery-area');
+  document.getElementById('listen-area').classList.add('hidden');
+
   if (deck && deck.id === 'everything') {
     document.getElementById('mode-bar').classList.add('hidden');
     document.getElementById('study-area').classList.add('hidden');
@@ -941,10 +1114,13 @@ function switchDeck(i) {
       document.getElementById('study-area').classList.remove('hidden');
       document.getElementById('blitz-area').classList.add('hidden');
       renderStudy();
-    } else {
+    } else if (currentMode === 'blitz') {
       document.getElementById('study-area').classList.add('hidden');
       document.getElementById('blitz-area').classList.remove('hidden');
       renderBlitzStart();
+    } else if (currentMode === 'listen') {
+      document.getElementById('listen-area').classList.remove('hidden');
+      renderListenMode();
     }
   }
 }
@@ -991,18 +1167,31 @@ function showToast(msg) {
 // ===== MODE SWITCHER =====
 function setMode(mode) {
   currentMode = mode;
+  // Stop any playing audio when switching modes
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  listenPlaying = false;
+  if (listenTimeout) { clearTimeout(listenTimeout); listenTimeout = null; }
+
   document.getElementById('btn-study').className = 'mode-btn' + (mode === 'study' ? ' active' : '');
   document.getElementById('btn-blitz').className = 'mode-btn' + (mode === 'blitz' ? ' active' : '');
+  document.getElementById('btn-listen').className = 'mode-btn' + (mode === 'listen' ? ' active' : '');
+
   const mAreaSM = document.getElementById('mastery-area');
   if (mAreaSM) mAreaSM.classList.add('hidden');
+
+  document.getElementById('study-area').classList.add('hidden');
+  document.getElementById('blitz-area').classList.add('hidden');
+  document.getElementById('listen-area').classList.add('hidden');
+
   if (mode === 'study') {
     document.getElementById('study-area').classList.remove('hidden');
-    document.getElementById('blitz-area').classList.add('hidden');
     renderStudy();
-  } else {
-    document.getElementById('study-area').classList.add('hidden');
+  } else if (mode === 'blitz') {
     document.getElementById('blitz-area').classList.remove('hidden');
     renderBlitzStart();
+  } else if (mode === 'listen') {
+    document.getElementById('listen-area').classList.remove('hidden');
+    renderListenMode();
   }
 }
 
@@ -1634,6 +1823,258 @@ function autoSpeak(text) {
 // Voices load async on some browsers — wait for them
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => { /* voices now available */ };
+}
+
+
+// ===== LISTEN / AUDIO STUDY MODE =====
+let listenPlaying = false;
+let listenCardIdx = 0;
+let listenPhase = 0; // 0=japanese, 1=english, 2=example
+let listenTimeout = null;
+let listenSpeed = 1.0; // multiplier for pauses
+let listenLoop = false;
+let listenShuffle = false;
+let listenQueue = [];
+
+// Pause durations in ms (scaled by listenSpeed)
+const PAUSE_SHORT  = () => 900  / listenSpeed;
+const PAUSE_MEDIUM = () => 1400 / listenSpeed;
+const PAUSE_LONG   = () => 2200 / listenSpeed;
+
+function buildListenQueue() {
+  const deck = ALL_DECKS[currentDeck];
+  listenQueue = deck.cards.map((_, i) => i);
+  if (listenShuffle) listenQueue = listenQueue.sort(() => Math.random() - 0.5);
+}
+
+function renderListenMode() {
+  buildListenQueue();
+  listenCardIdx = 0;
+  listenPhase = 0;
+  listenPlaying = false;
+  renderListenUI();
+}
+
+function renderListenUI() {
+  const area = document.getElementById('listen-area');
+  const deck = ALL_DECKS[currentDeck];
+  const total = listenQueue.length;
+  const cardI = listenQueue[Math.min(listenCardIdx, total - 1)];
+  const card = deck.cards[cardI];
+  const pct = total > 0 ? Math.round(listenCardIdx / total * 100) : 0;
+
+  const phaseLabels = ['▶ Japanese', '▶ English', '▶ Example'];
+  const phaseLabel = listenPlaying ? (phaseLabels[listenPhase] || '') : (listenCardIdx >= total ? 'Complete' : 'Ready');
+
+  const wordClass = card && card.q.length > 6 ? 'listen-word sm' : 'listen-word';
+
+  area.innerHTML = `
+    <div class="listen-progress-bar-wrap">
+      <div class="listen-progress-bar" style="width:${pct}%"></div>
+    </div>
+    <div class="listen-progress">${listenCardIdx + 1} / ${total} — ${deck.jp} (${deck.en})</div>
+
+    <div class="listen-player">
+      <div class="listen-phase" id="listen-phase">${phaseLabel}</div>
+      <div class="${wordClass}" id="listen-word">${card ? card.q : '—'}</div>
+      <div class="listen-reading" id="listen-reading">${card && listenPhase >= 1 ? card.kana : ''}</div>
+      <div class="listen-english" id="listen-english">${card && listenPhase >= 1 ? card.en : ''}</div>
+      <div class="listen-example" id="listen-example">${card && listenPhase >= 2 ? card.ex + '<div class="ex-en">' + card.exen + '</div>' : ''}</div>
+    </div>
+
+    <div class="listen-controls">
+      <button class="listen-btn" onclick="listenPrev()" title="Previous">⏮</button>
+      <button class="listen-btn primary" id="listen-playbtn" onclick="listenTogglePlay()">${listenPlaying ? '⏸' : '▶'}</button>
+      <button class="listen-btn" onclick="listenSkip()" title="Skip">⏭</button>
+    </div>
+
+    <div class="listen-speed">
+      <button class="speed-btn${listenSpeed === 0.6 ? ' active' : ''}" onclick="setListenSpeed(0.6)">🐢 Slow</button>
+      <button class="speed-btn${listenSpeed === 1.0 ? ' active' : ''}" onclick="setListenSpeed(1.0)">Normal</button>
+      <button class="speed-btn${listenSpeed === 1.6 ? ' active' : ''}" onclick="setListenSpeed(1.6)">⚡ Fast</button>
+    </div>
+
+    <div class="listen-options">
+      <button class="option-btn${listenLoop ? ' active' : ''}" onclick="toggleListenLoop()">🔁 Loop</button>
+      <button class="option-btn${listenShuffle ? ' active' : ''}" onclick="toggleListenShuffle()">🔀 Shuffle</button>
+    </div>
+  `;
+}
+
+function listenTogglePlay() {
+  if (listenPlaying) {
+    listenPlaying = false;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (listenTimeout) { clearTimeout(listenTimeout); listenTimeout = null; }
+    renderListenUI();
+  } else {
+    listenPlaying = true;
+    renderListenUI();
+    listenRunPhase();
+  }
+}
+
+function listenRunPhase() {
+  if (!listenPlaying) return;
+  const deck = ALL_DECKS[currentDeck];
+  const total = listenQueue.length;
+
+  if (listenCardIdx >= total) {
+    // Deck complete
+    if (listenLoop) {
+      listenCardIdx = 0;
+      if (listenShuffle) buildListenQueue();
+      listenPhase = 0;
+      listenRunPhase();
+    } else {
+      listenPlaying = false;
+      showListenComplete();
+    }
+    return;
+  }
+
+  const cardI = listenQueue[listenCardIdx];
+  const card = deck.cards[cardI];
+
+  updateListenDisplay(card);
+
+  if (listenPhase === 0) {
+    // Speak Japanese word
+    updatePhaseLabel('▶ Japanese');
+    speakListenText(card.q, 'ja-JP', 0.8, () => {
+      listenTimeout = setTimeout(() => {
+        listenPhase = 1;
+        listenRunPhase();
+      }, PAUSE_MEDIUM());
+    });
+
+  } else if (listenPhase === 1) {
+    // Speak English meaning
+    updatePhaseLabel('▶ English');
+    updateListenDisplay(card); // reveal english
+    speakListenText(card.en.replace(/[~〜（）()\/]/g, ' '), 'en-US', 1.0, () => {
+      listenTimeout = setTimeout(() => {
+        listenPhase = 2;
+        listenRunPhase();
+      }, PAUSE_MEDIUM());
+    });
+
+  } else if (listenPhase === 2) {
+    // Speak example sentence
+    updatePhaseLabel('▶ Example sentence');
+    updateListenDisplay(card); // reveal example
+    speakListenText(card.ex, 'ja-JP', 0.8, () => {
+      listenTimeout = setTimeout(() => {
+        // Advance to next card
+        listenCardIdx++;
+        listenPhase = 0;
+        listenRunPhase();
+      }, PAUSE_LONG());
+    });
+  }
+}
+
+function updatePhaseLabel(label) {
+  const el = document.getElementById('listen-phase');
+  if (el) el.textContent = label;
+}
+
+function updateListenDisplay(card) {
+  const wEl = document.getElementById('listen-word');
+  const rEl = document.getElementById('listen-reading');
+  const eEl = document.getElementById('listen-english');
+  const exEl = document.getElementById('listen-example');
+  if (wEl) {
+    wEl.textContent = card.q;
+    wEl.className = card.q.length > 6 ? 'listen-word sm' : 'listen-word';
+  }
+  if (rEl) rEl.textContent = listenPhase >= 1 ? card.kana : '';
+  if (eEl) eEl.textContent = listenPhase >= 1 ? card.en : '';
+  if (exEl) exEl.innerHTML = listenPhase >= 2
+    ? card.ex + '<div class="ex-en">' + card.exen + '</div>'
+    : '';
+  // Update progress
+  const deck = ALL_DECKS[currentDeck];
+  const pct = Math.round(listenCardIdx / listenQueue.length * 100);
+  const pb = document.querySelector('.listen-progress-bar');
+  if (pb) pb.style.width = pct + '%';
+  const pr = document.querySelector('.listen-progress');
+  if (pr) pr.textContent = (listenCardIdx + 1) + ' / ' + listenQueue.length + ' — ' + deck.jp + ' (' + deck.en + ')';
+}
+
+function speakListenText(text, lang, rate, onEnd) {
+  if (!window.speechSynthesis) { onEnd(); return; }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = rate;
+  if (lang === 'ja-JP') {
+    const voice = getJapaneseVoice();
+    if (voice) utter.voice = voice;
+  }
+  utter.onend = onEnd;
+  utter.onerror = onEnd; // keep going even on error
+  window.speechSynthesis.speak(utter);
+}
+
+function listenSkip() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (listenTimeout) { clearTimeout(listenTimeout); listenTimeout = null; }
+  listenCardIdx++;
+  listenPhase = 0;
+  if (listenPlaying) {
+    renderListenUI();
+    listenRunPhase();
+  } else {
+    renderListenUI();
+  }
+}
+
+function listenPrev() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (listenTimeout) { clearTimeout(listenTimeout); listenTimeout = null; }
+  listenCardIdx = Math.max(0, listenCardIdx - 1);
+  listenPhase = 0;
+  if (listenPlaying) {
+    renderListenUI();
+    listenRunPhase();
+  } else {
+    renderListenUI();
+  }
+}
+
+function setListenSpeed(s) {
+  listenSpeed = s;
+  renderListenUI();
+  // If playing, the new speed takes effect on next pause
+}
+
+function toggleListenLoop() {
+  listenLoop = !listenLoop;
+  renderListenUI();
+  if (listenPlaying) listenRunPhase();
+}
+
+function toggleListenShuffle() {
+  listenShuffle = !listenShuffle;
+  buildListenQueue();
+  listenCardIdx = 0;
+  listenPhase = 0;
+  renderListenUI();
+  if (listenPlaying) listenRunPhase();
+}
+
+function showListenComplete() {
+  const deck = ALL_DECKS[currentDeck];
+  const area = document.getElementById('listen-area');
+  area.innerHTML = `
+    <div class="listen-done">
+      <div class="done-icon">🎧</div>
+      <h2>きけました！</h2>
+      <p>You listened through all ${listenQueue.length} cards in ${deck.jp} (${deck.en}).<br>よくできました！</p>
+      <button class="start-btn" onclick="listenCardIdx=0;listenPhase=0;listenPlaying=false;renderListenUI()">もう一回 ▶</button>
+    </div>
+  `;
 }
 
 // ===== INIT =====
